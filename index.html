@@ -1,4 +1,3 @@
-<!-- Trail³r - forevermidi.com 2025 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -105,6 +104,36 @@ accent-color: #0f0;
 cursor: pointer;
 touch-action: manipulation;
 }
+input[type="range"]::-webkit-slider-runnable-track {
+background: #111;
+height: 6px;
+border: 1px solid #0f0;
+border-radius: 3px;
+}
+input[type="range"]::-webkit-slider-thumb {
+-webkit-appearance: none;
+appearance: none;
+background: #0f0;
+box-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+height: 14px;
+width: 14px;
+border-radius: 50%;
+margin-top: -5px;
+}
+input[type="range"]::-moz-range-track {
+background: #111;
+height: 6px;
+border: 1px solid #0f0;
+border-radius: 3px;
+}
+input[type="range"]::-moz-range-thumb {
+background: #0f0;
+box-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+height: 14px;
+width: 14px;
+border-radius: 50%;
+border: none;
+}
 button:active, select:active, input:active {
 transform: translateY(0);
 box-shadow: none;
@@ -166,7 +195,7 @@ display: flex;
 <canvas id="canvas"></canvas>
 <div id="control-panel">
 <h1>Trail³r</h1>
-<p>by forevermidi.com</p>
+<p>forevermidi.com</p>
 <button onclick="document.getElementById('sprite-upload').click()">Load Sprite</button>
 <input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
 <button onclick="document.getElementById('bg-upload').click()">Load Background</button>
@@ -188,7 +217,6 @@ display: flex;
 <option value="eraser">Eraser</option>
 <option value="distort">Distort</option>
 <option value="flicker">Flicker</option>
-<option value="mirror">Mirror</option>
 <option value="420">420</option>
 <option value="vortex">Vortex</option>
 <option value="ripple">Ripple</option>
@@ -203,8 +231,8 @@ display: flex;
 <option value="pulse">Pulse</option>
 <option value="shatter">Shatter</option>
 <option value="flip">Flip</option>
-<option value="clone">Clone</option>
 <option value="haunt">Haunt</option>
+<option value="rotate90">Rotate 90</option>
 </select>
 <ul id="fx-list">
 <li data-value="none" class="selected">No Effect</li>
@@ -221,7 +249,6 @@ display: flex;
 <li data-value="eraser">Eraser</li>
 <li data-value="distort">Distort</li>
 <li data-value="flicker">Flicker</li>
-<li data-value="mirror">Mirror</li>
 <li data-value="420">420</li>
 <li data-value="vortex">Vortex</li>
 <li data-value="ripple">Ripple</li>
@@ -236,8 +263,8 @@ display: flex;
 <li data-value="pulse">Pulse</li>
 <li data-value="shatter">Shatter</li>
 <li data-value="flip">Flip</li>
-<li data-value="clone">Clone</li>
 <li data-value="haunt">Haunt</li>
+<li data-value="rotate90">Rotate 90</li>
 </ul>
 <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
 <label for="scale">Scale: <span id="scale-value">1</span></label>
@@ -269,8 +296,6 @@ const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spi
 let currentBackgroundImage = new Image();
 currentBackgroundImage.src = defaultBackground;
 let trailAlways = false;
-let isCloning = false;
-let isCloneSampleTaker = false;
 
 sprite.onload = () => {
 const ratio = 218.4 / Math.max(sprite.width, sprite.height);
@@ -338,68 +363,20 @@ alert('Please select an image file for the background.');
 
 function snapshot() {
 console.log('Snapshot button clicked');
-try {
-const snapshotCanvas = document.createElement('canvas');
-snapshotCanvas.width = canvas.width;
-snapshotCanvas.height = canvas.height;
-const snapshotCtx = snapshotCanvas.getContext('2d');
-
-// Draw background
-if (currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
-const img = new Image();
-img.src = currentBackgroundImage.src;
-img.onload = () => {
-const canvasAspect = canvas.width / canvas.height;
-const bgAspect = img.width / img.height;
-let drawWidth, drawHeight, offsetX, offsetY;
-if (canvasAspect > bgAspect) {
-drawHeight = canvas.height;
-drawWidth = drawHeight * bgAspect;
-offsetX = (canvas.width - drawWidth) / 2;
-offsetY = 0;
-} else {
-drawWidth = canvas.width;
-drawHeight = drawWidth / bgAspect;
-offsetX = 0;
-offsetY = (canvas.height - drawHeight) / 2;
-}
-snapshotCtx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-
-// Draw trails
-snapshotCtx.drawImage(trailCanvas, 0, 0);
-
-// Draw sprite
-if (sprite.complete && sprite.naturalWidth !== 0) {
-applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-}
-
-// Trigger download
-const link = document.createElement('a');
-link.download = 'trail3r-snapshot.png';
-link.href = snapshotCanvas.toDataURL('image/png');
-link.click();
-console.log('Snapshot downloaded');
-};
-img.onerror = () => {
-console.error('Failed to load background for snapshot');
-};
-} else {
-snapshotCtx.fillStyle = '#000';
-snapshotCtx.fillRect(0, 0, canvas.width, canvas.height);
-snapshotCtx.drawImage(trailCanvas, 0, 0);
-if (sprite.complete && sprite.naturalWidth !== 0) {
-applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-}
-const link = document.createElement('a');
-link.download = 'trail3r-snapshot.png';
-link.href = snapshotCanvas.toDataURL('image/png');
-link.click();
-console.log('Snapshot downloaded');
-}
-} catch (e) {
-console.error('Failed to generate snapshot:', e);
-alert('Snapshot failed. Please check the console for details.');
-}
+ctx.save();
+ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.fillStyle = '#0f0';
+ctx.font = '24px Inter';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('no snaps for now, just panta rhei', canvas.width / 2, canvas.height / 2);
+ctx.restore();
+setTimeout(() => {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+ctx.drawImage(trailCanvas, 0, 0);
+applyEffects(ctx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+}, 5000);
 }
 
 function resetCanvas() {
@@ -426,8 +403,6 @@ li.classList.toggle('selected', li.dataset.value === 'none');
 });
 document.getElementById('trail-always').checked = false;
 trailAlways = false;
-isCloning = false;
-isCloneSampleTaker = false;
 animate();
 }
 
@@ -457,7 +432,6 @@ document.querySelector('#fx-list li[data-value="none"]').classList.remove('selec
 }
 }
 }
-isCloneSampleTaker = effects.includes('clone');
 console.log('Selected effects:', effects);
 const select = document.getElementById('fxOthers');
 Array.from(select.options).forEach(option => {
@@ -492,12 +466,6 @@ ctx.globalAlpha = 0.9;
 const offsetX = (Math.random() - 0.5) * 10;
 const offsetY = (Math.random() - 0.5) * 10;
 ctx.drawImage(img, offsetX - width / 2, offsetY - height / 2, width, height);
-} else if (effect === 'mirror') {
-ctx.translate(width / 2, height / 2);
-ctx.scale(-1, 1);
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-ctx.scale(-1, 1);
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
 } else if (effect === '420') {
 ctx.translate(width / 2, height / 2);
 ctx.rotate(Math.sin(effectTime) * Math.PI);
@@ -638,6 +606,10 @@ ctx.drawImage(img, 0, 0, width, height);
 } else if (effect === 'posterize') {
 ctx.filter = 'contrast(200%) saturate(150%)';
 ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'rotate90') {
+ctx.translate(width / 2, height / 2);
+ctx.rotate(Math.PI / 2);
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
 } else if (effect === 'none') {
 ctx.drawImage(img, 0, 0, width, height);
 }
@@ -655,7 +627,7 @@ return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= sprite
 
 function animate() {
 ctx.clearRect(0, 0, canvas.width, canvas.height);
-if (!isDragging && !isCloning && !isCloneSampleTaker) {
+if (!isDragging) {
 spriteX += dx;
 spriteY += dy;
 if (spriteX < 0 || spriteX > canvas.width - sprite.width * scale) {
@@ -665,7 +637,7 @@ if (spriteY < 0 || spriteY > canvas.height - sprite.height * scale) {
 dy = -dy;
 }
 }
-if (trailAlways || isDragging || isCloning) {
+if (trailAlways || isDragging) {
 trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
 applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
 }
@@ -693,15 +665,11 @@ const mouseX = e.clientX - rect.left;
 const mouseY = e.clientY - rect.top;
 
 if (!isOverControlPanel(e.clientX, e.clientY)) {
-if (isCloneSampleTaker) {
-takeCloneSample(mouseX, mouseY);
-} else {
 isDragging = isMouseOverSprite(mouseX, mouseY);
 if (!isDragging) {
 spriteX = mouseX - (sprite.width * scale) / 2;
 spriteY = mouseY - (sprite.height * scale) / 2;
 isDragging = true;
-}
 }
 }
 });
@@ -738,15 +706,11 @@ const touch = e.touches[0];
 const touchX = touch.clientX - rect.left;
 const touchY = touch.clientY - rect.top;
 if (!isOverControlPanel(touch.clientX, touch.clientY)) {
-if (isCloneSampleTaker) {
-takeCloneSample(touchX, touchY);
-} else {
 isDragging = isMouseOverSprite(touchX, touchY);
 if (!isDragging) {
 spriteX = touchX - (sprite.width * scale) / 2;
 spriteY = touchY - (sprite.height * scale) / 2;
 isDragging = true;
-}
 }
 }
 });
@@ -778,24 +742,6 @@ resetVelocity();
 }
 });
 
-function takeCloneSample(x, y) {
-const sampleSize = 100;
-const tempCanvas = document.createElement('canvas');
-tempCanvas.width = sampleSize;
-tempCanvas.height = sampleSize;
-const tempCtx = tempCanvas.getContext('2d');
-
-const sourceX = x - sampleSize / 2;
-const sourceY = y - sampleSize / 2;
-
-tempCtx.drawImage(canvas, sourceX, sourceY, sampleSize, sampleSize, 0, 0, sampleSize, sampleSize);
-sprite.src = tempCanvas.toDataURL();
-isCloneSampleTaker = false;
-isCloning = true;
-spriteX = x - (sprite.width * scale) / 2;
-spriteY = y - (sprite.height * scale) / 2;
-}
-
 document.getElementById('fx-list').addEventListener('click', (e) => {
 if (e.target.tagName === 'LI') {
 changeEffect(e.target);
@@ -812,7 +758,6 @@ let newIndex = selectedIndex + direction;
 if (newIndex >= 0 && newIndex < options.length) {
 options[newIndex].selected = true;
 effects = Array.from(select.selectedOptions).map(option => option.value);
-isCloneSampleTaker = effects.includes('clone');
 console.log('Selected effects:', effects);
 Array.from(document.getElementById('fx-list').children).forEach(li => {
 li.classList.toggle('selected', effects.includes(li.dataset.value));
