@@ -46,6 +46,7 @@
             backdrop-filter: blur(2px);
             max-height: 30vh;
             overflow-y: auto;
+            pointer-events: auto;
         }
         #control-panel h1 {
             font-size: 18.72px;
@@ -195,7 +196,7 @@
             <option value="eraser">Eraser</option>
             <option value="distort">Distort</option>
             <option value="flicker">Flicker</option>
-            <option value="kaleidoscope">Kaleidoscope</option>
+            <option value="mirror">Mirror</option>
             <option value="420">420</option>
             <option value="vortex">Vortex</option>
             <option value="ripple">Ripple</option>
@@ -209,6 +210,8 @@
             <option value="melt">Melt</option>
             <option value="pulse">Pulse</option>
             <option value="shatter">Shatter</option>
+            <option value="flip">Flip</option>
+            <option value="clone">Clone</option>
         </select>
         <ul id="fx-list">
             <li data-value="none" class="selected">No Effect</li>
@@ -225,7 +228,7 @@
             <li data-value="eraser">Eraser</li>
             <li data-value="distort">Distort</li>
             <li data-value="flicker">Flicker</li>
-            <li data-value="kaleidoscope">Kaleidoscope</li>
+            <li data-value="mirror">Mirror</li>
             <li data-value="420">420</li>
             <li data-value="vortex">Vortex</li>
             <li data-value="ripple">Ripple</li>
@@ -239,6 +242,8 @@
             <li data-value="melt">Melt</li>
             <li data-value="pulse">Pulse</li>
             <li data-value="shatter">Shatter</li>
+            <li data-value="flip">Flip</li>
+            <li data-value="clone">Clone</li>
         </ul>
         <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
         <label for="scale">Scale: <span id="scale-value">1</span></label>
@@ -270,7 +275,9 @@
     let currentBackgroundImage = new Image();
     currentBackgroundImage.src = defaultBackground;
     let trailAlways = false;
-    let frameCounter = 0;
+    let isCloneSourceSelecting = false;
+    let cloneSourceX = 0, cloneSourceY = 0;
+    let isCloning = false;
 
     sprite.onload = () => {
         const ratio = 218.4 / Math.max(sprite.width, sprite.height);
@@ -278,7 +285,7 @@
         sprite.height *= ratio;
         spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
         spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-        setConstantVelocity();
+        resetVelocity();
         animate();
     };
     sprite.onerror = () => {
@@ -296,7 +303,7 @@
         canvas.style.background = 'black';
     };
 
-    function setConstantVelocity() {
+    function resetVelocity() {
         const angle = Math.random() * 2 * Math.PI;
         dx = Math.cos(angle) * speed;
         dy = Math.sin(angle) * speed;
@@ -339,12 +346,12 @@
     function snapshot() {
         console.log('Snapshot button clicked');
         try {
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height;
-            const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+            const snapshotCanvas = document.createElement('canvas');
+            snapshotCanvas.width = canvas.width;
+            snapshotCanvas.height = canvas.height;
+            const snapshotCtx = snapshotCanvas.getContext('2d');
 
-            // Draw the current background
+            // Draw background
             if (currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
                 const canvasAspect = canvas.width / canvas.height;
                 const bgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
@@ -361,44 +368,32 @@
                     offsetX = 0;
                     offsetY = (canvas.height - drawHeight) / 2;
                 }
-                tempCtx.drawImage(currentBackgroundImage, offsetX, offsetY, drawWidth, drawHeight);
-                console.log('Background drawn');
+                snapshotCtx.drawImage(currentBackgroundImage, offsetX, offsetY, drawWidth, drawHeight);
             } else {
-                console.warn('Background image not loaded, using black background');
-                tempCtx.fillStyle = '#000';
-                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                snapshotCtx.fillStyle = '#000';
+                snapshotCtx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
             // Draw trails
-            try {
-                tempCtx.drawImage(trailCanvas, 0, 0);
-                console.log('Trails drawn');
-            } catch (e) {
-                console.error('Failed to draw trails:', e);
-            }
+            snapshotCtx.drawImage(trailCanvas, 0, 0);
 
-            // Draw sprite with effects
+            // Draw sprite
             if (sprite.complete && sprite.naturalWidth !== 0) {
-                applyEffects(tempCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-                console.log('Sprite drawn with effects:', effects);
-            } else {
-                console.warn('Sprite not loaded, skipping sprite in snapshot');
+                applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
             }
 
-            // Generate and download snapshot
-            try {
-                const dataURL = tempCanvas.toDataURL('image/png');
+            // Convert to Blob and download
+            snapshotCanvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.download = 'trail3r-snapshot.png';
-                link.href = dataURL;
+                link.href = url;
                 link.click();
+                URL.revokeObjectURL(url);
                 console.log('Snapshot downloaded');
-            } catch (e) {
-                console.error('Failed to generate snapshot:', e);
-                alert('Failed to generate snapshot. Check console for details.');
-            }
+            }, 'image/png');
         } catch (e) {
-            console.error('Snapshot function failed:', e);
+            console.error('Failed to generate snapshot:', e);
             alert('Snapshot failed. Please check the console for details.');
         }
     }
@@ -412,7 +407,9 @@
         canvas.style.backgroundSize = 'cover';
         spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
         spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-        setConstantVelocity();
+        dx = 0;
+        dy = 0;
+        resetVelocity();
         spriteHistory = [sprite.src];
         effects = ['none'];
         const select = document.getElementById('fxOthers');
@@ -423,6 +420,8 @@
         });
         document.getElementById('trail-always').checked = false;
         trailAlways = false;
+        isCloneSourceSelecting = false;
+        isCloning = false;
     }
 
     function changeEffect(element) {
@@ -452,7 +451,6 @@
             }
         }
         console.log('Selected effects:', effects);
-        // Sync select element for mobile
         const select = document.getElementById('fxOthers');
         Array.from(select.options).forEach(option => {
             option.selected = effects.includes(option.value);
@@ -472,161 +470,177 @@
         ctx.save();
         let drawX = x, drawY = y;
 
-        effects.forEach(effect => {
-            ctx.save();
-            if (effect === 'distort') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                ctx.scale(1 + Math.sin(effectTime) * 0.2, 1 + Math.cos(effectTime) * 0.2);
-                ctx.translate(-(drawX + width / 2), -(drawY + height / 2));
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'flicker') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
-                ctx.filter = `hue-rotate(${Math.random() * 60}deg)`;
-                ctx.globalAlpha = 0.9;
-                const offsetX = (Math.random() - 0.5) * 10;
-                const offsetY = (Math.random() - 0.5) * 10;
-                ctx.drawImage(img, offsetX - width / 2, offsetY - width / 2, width, height);
-            } else if (effect === 'kaleidoscope') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                for (let i = 0; i < 8; i++) {
-                    ctx.rotate(Math.PI / 4);
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
+        if (effects.includes('clone') && isCloning) {
+            const brushSize = 50;
+            ctx.drawImage(
+                canvas,
+                cloneSourceX - brushSize / 2,
+                cloneSourceY - brushSize / 2,
+                brushSize,
+                brushSize,
+                drawX,
+                drawY,
+                brushSize,
+                brushSize
+            );
+        } else {
+            effects.forEach(effect => {
+                ctx.save();
+                if (effect === 'distort') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    ctx.scale(1 + Math.sin(effectTime) * 0.2, 1 + Math.cos(effectTime) * 0.2);
+                    ctx.translate(-(drawX + width / 2), -(drawY + height / 2));
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'flicker') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
+                    ctx.filter = `hue-rotate(${Math.random() * 60}deg)`;
+                    ctx.globalAlpha = 0.9;
+                    const offsetX = (Math.random() - 0.5) * 10;
+                    const offsetY = (Math.random() - 0.5) * 10;
+                    ctx.drawImage(img, offsetX - width / 2, offsetY - width / 2, width, height);
+                } else if (effect === 'mirror') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
                     ctx.scale(-1, 1);
                     ctx.drawImage(img, -width / 2, -height / 2, width, height);
                     ctx.scale(-1, 1);
-                }
-            } else if (effect === '420') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                ctx.rotate(Math.sin(effectTime) * Math.PI);
-                ctx.scale(1 + Math.sin(effectTime * 2) * 0.3, 1 + Math.cos(effectTime * 2) * 0.3);
-                ctx.filter = `hue-rotate(${Math.sin(effectTime) * 360}deg) saturate(200%) contrast(150%)`;
-                ctx.globalAlpha = 0.8 + Math.sin(effectTime * 3) * 0.2;
-                ctx.drawImage(img, -width / 2, -height / 2, width, height);
-            } else if (effect === 'vortex') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                ctx.rotate(Math.sin(effectTime * 0.5) * Math.PI);
-                ctx.scale(1 + Math.sin(effectTime) * 0.1, 1 + Math.cos(effectTime) * 0.1);
-                ctx.drawImage(img, -width / 2, -height / 2, width, height);
-            } else if (effect === 'ripple') {
-                const offset = Math.sin(effectTime * 2) * 10;
-                ctx.translate(drawX + offset, drawY + offset);
-                ctx.drawImage(img, -width / 2, -height / 2, width, height);
-            } else if (effect === 'neon') {
-                ctx.filter = 'contrast(200%) brightness(150%) drop-shadow(0 0 10px #0f0)';
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'fractal') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                for (let i = 0; i < 3; i++) {
-                    ctx.scale(0.5, 0.5);
-                    ctx.rotate(Math.PI / 3);
                     ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                }
-            } else if (effect === 'chromatic') {
-                ctx.translate(drawX, drawY);
-                ctx.filter = 'hue-rotate(0deg)';
-                ctx.drawImage(img, 2, 2, width, height);
-                ctx.filter = 'hue-rotate(120deg)';
-                ctx.drawImage(img, -2, -2, width, height);
-                ctx.filter = 'hue-rotate(240deg)';
-                ctx.drawImage(img, 0, 0, width, height);
-            } else if (effect === 'dreamscape') {
-                ctx.filter = `blur(3px) opacity(0.7) hue-rotate(${Math.sin(effectTime) * 180}deg)`;
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                ctx.scale(1 + Math.sin(effectTime) * 0.15, 1 + Math.cos(effectTime) * 0.15);
-                ctx.drawImage(img, -width / 2, -height / 2, width, height);
-            } else if (effect === 'warp') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                ctx.scale(1 + Math.sin(effectTime * 1.5) * 0.3, 1 + Math.cos(effectTime * 1.5) * 0.3);
-                ctx.rotate(Math.sin(effectTime * 0.8) * 0.5);
-                ctx.filter = `contrast(150%) hue-rotate(${Math.sin(effectTime) * 90}deg)`;
-                ctx.globalAlpha = 0.7;
-                ctx.drawImage(img, -width / 2, -height / 2, width, height);
-            } else if (effect === 'static') {
-                ctx.filter = `contrast(200%) brightness(120%)`;
-                ctx.globalAlpha = Math.random() * 0.3 + 0.7;
-                const noise = Math.random() * 10 - 5;
-                ctx.drawImage(img, drawX + noise, drawY + noise, width, height);
-            } else if (effect === 'ghost') {
-                ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
-                ctx.filter = `blur(2px) hue-rotate(${Math.sin(effectTime * 0.5) * 180}deg)`;
-                ctx.drawImage(img, drawX, drawY, width, height);
-                ctx.globalAlpha = 0.3;
-                ctx.drawImage(img, drawX + 10, drawY + 10, width, height);
-            } else if (effect === 'melt') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                ctx.scale(1, 1 + Math.sin(effectTime * 1.2) * 0.4);
-                ctx.filter = `contrast(150%) saturate(200%)`;
-                ctx.drawImage(img, -width / 2, drawY - height / 2 + Math.sin(effectTime) * 20, width, height);
-            } else if (effect === 'pulse') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                const pulseScale = 1 + Math.abs(Math.sin(effectTime * 2)) * 0.2;
-                ctx.scale(pulseScale, pulseScale);
-                ctx.filter = `brightness(150%) contrast(150%)`;
-                ctx.globalAlpha = 0.8;
-                ctx.drawImage(img, -width / 2, -height / 2, width, height);
-            } else if (effect === 'shatter') {
-                ctx.translate(drawX + width / 2, drawY + height / 2);
-                for (let i = 0; i < 3; i++) {
-                    ctx.save();
-                    ctx.rotate(Math.random() * 0.2 - 0.1);
-                    ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
-                    ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+                } else if (effect === '420') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    ctx.rotate(Math.sin(effectTime) * Math.PI);
+                    ctx.scale(1 + Math.sin(effectTime * 2) * 0.3, 1 + Math.cos(effectTime * 2) * 0.3);
+                    ctx.filter = `hue-rotate(${Math.sin(effectTime) * 360}deg) saturate(200%) contrast(150%)`;
+                    ctx.globalAlpha = 0.8 + Math.sin(effectTime * 3) * 0.2;
                     ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                    ctx.restore();
-                }
-            } else if (effect === 'eraser') {
-                if (ctx === trailCtx) {
-                    ctx.globalCompositeOperation = 'destination-out';
-                    ctx.globalAlpha = 0.5;
+                } else if (effect === 'vortex') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    ctx.rotate(Math.sin(effectTime * 0.5) * Math.PI);
+                    ctx.scale(1 + Math.sin(effectTime) * 0.1, 1 + Math.cos(effectTime) * 0.1);
+                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                } else if (effect === 'ripple') {
+                    const offset = Math.sin(effectTime * 2) * 10;
+                    ctx.translate(drawX + offset, drawY + offset);
+                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                } else if (effect === 'neon') {
+                    ctx.filter = 'contrast(200%) brightness(150%) drop-shadow(0 0 10px #0f0)';
                     ctx.drawImage(img, drawX, drawY, width, height);
-                    ctx.globalCompositeOperation = 'source-over';
-                    ctx.globalAlpha = 1.0;
-                } else {
+                } else if (effect === 'fractal') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    for (let i = 0; i < 3; i++) {
+                        ctx.scale(0.5, 0.5);
+                        ctx.rotate(Math.PI / 3);
+                        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                    }
+                } else if (effect === 'chromatic') {
+                    ctx.translate(drawX, drawY);
+                    ctx.filter = 'hue-rotate(0deg)';
+                    ctx.drawImage(img, 2, 2, width, height);
+                    ctx.filter = 'hue-rotate(120deg)';
+                    ctx.drawImage(img, -2, -2, width, height);
+                    ctx.filter = 'hue-rotate(240deg)';
+                    ctx.drawImage(img, 0, 0, width, height);
+                } else if (effect === 'dreamscape') {
+                    ctx.filter = `blur(3px) opacity(0.7) hue-rotate(${Math.sin(effectTime) * 180}deg)`;
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    ctx.scale(1 + Math.sin(effectTime) * 0.15, 1 + Math.cos(effectTime) * 0.15);
+                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                } else if (effect === 'warp') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    ctx.scale(1 + Math.sin(effectTime * 1.5) * 0.3, 1 + Math.cos(effectTime * 1.5) * 0.3);
+                    ctx.rotate(Math.sin(effectTime * 0.8) * 0.5);
+                    ctx.filter = `contrast(150%) hue-rotate(${Math.sin(effectTime) * 90}deg)`;
+                    ctx.globalAlpha = 0.7;
+                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                } else if (effect === 'static') {
+                    ctx.filter = `contrast(200%) brightness(120%)`;
+                    ctx.globalAlpha = Math.random() * 0.3 + 0.7;
+                    const noise = Math.random() * 10 - 5;
+                    ctx.drawImage(img, drawX + noise, drawY + noise, width, height);
+                } else if (effect === 'ghost') {
+                    ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
+                    ctx.filter = `blur(2px) hue-rotate(${Math.sin(effectTime * 0.5) * 180}deg)`;
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                    ctx.globalAlpha = 0.3;
+                    ctx.drawImage(img, drawX + 10, drawY + 10, width, height);
+                } else if (effect === 'melt') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    ctx.scale(1, 1 + Math.sin(effectTime * 1.2) * 0.4);
+                    ctx.filter = `contrast(150%) saturate(200%)`;
+                    ctx.drawImage(img, -width / 2, drawY - height / 2 + Math.sin(effectTime) * 20, width, height);
+                } else if (effect === 'pulse') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    const pulseScale = 1 + Math.abs(Math.sin(effectTime * 2)) * 0.2;
+                    ctx.scale(pulseScale, pulseScale);
+                    ctx.filter = `brightness(150%) contrast(150%)`;
+                    ctx.globalAlpha = 0.8;
+                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                } else if (effect === 'shatter') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    for (let i = 0; i < 3; i++) {
+                        ctx.save();
+                        ctx.rotate(Math.random() * 0.2 - 0.1);
+                        ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
+                        ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+                        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                        ctx.restore();
+                    }
+                } else if (effect === 'flip') {
+                    ctx.translate(drawX + width / 2, drawY + height / 2);
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                } else if (effect === 'eraser') {
+                    if (ctx === trailCtx) {
+                        ctx.globalCompositeOperation = 'destination-out';
+                        ctx.globalAlpha = 0.5;
+                        ctx.drawImage(img, drawX, drawY, width, height);
+                        ctx.globalCompositeOperation = 'source-over';
+                        ctx.globalAlpha = 1.0;
+                    } else {
+                        ctx.drawImage(img, drawX, drawY, width, height);
+                    }
+                } else if (effect === 'grayscale') {
+                    ctx.filter = 'grayscale(100%)';
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'invert') {
+                    ctx.filter = 'invert(100%)';
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'sepia') {
+                    ctx.filter = 'sepia(100%)';
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'pixelate') {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = 32;
+                    tempCanvas.height = 32;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.imageSmoothingEnabled = false;
+                    tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+                    ctx.imageSmoothingEnabled = false;
+                    ctx.drawImage(tempCanvas, drawX, drawY, width, height);
+                    ctx.imageSmoothingEnabled = true;
+                } else if (effect === 'blur') {
+                    ctx.filter = 'blur(5px)';
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'hue') {
+                    ctx.filter = `hue-rotate(${hueValue}deg)`;
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'randomHue') {
+                    ctx.filter = `hue-rotate(${Math.random() * 360}deg)`;
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'contrast') {
+                    ctx.filter = 'contrast(300%)';
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'brightness') {
+                    ctx.filter = 'brightness(250%)';
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'posterize') {
+                    ctx.filter = 'contrast(200%) saturate(150%)';
+                    ctx.drawImage(img, drawX, drawY, width, height);
+                } else if (effect === 'none') {
                     ctx.drawImage(img, drawX, drawY, width, height);
                 }
-            } else if (effect === 'grayscale') {
-                ctx.filter = 'grayscale(100%)';
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'invert') {
-                ctx.filter = 'invert(100%)';
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'sepia') {
-                ctx.filter = 'sepia(100%)';
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'pixelate') {
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = 32;
-                tempCanvas.height = 32;
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCtx.imageSmoothingEnabled = false;
-                tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-                ctx.imageSmoothingEnabled = false;
-                ctx.drawImage(tempCanvas, drawX, drawY, width, height);
-                ctx.imageSmoothingEnabled = true;
-            } else if (effect === 'blur') {
-                ctx.filter = 'blur(5px)';
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'hue') {
-                ctx.filter = `hue-rotate(${hueValue}deg)`;
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'randomHue') {
-                ctx.filter = `hue-rotate(${Math.random() * 360}deg)`;
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'contrast') {
-                ctx.filter = 'contrast(300%)';
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'brightness') {
-                ctx.filter = 'brightness(250%)';
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'posterize') {
-                ctx.filter = 'contrast(200%) saturate(150%)';
-                ctx.drawImage(img, drawX, drawY, width, height);
-            } else if (effect === 'none') {
-                ctx.drawImage(img, drawX, drawY, width, height);
-            }
-            ctx.restore();
-        });
+                ctx.restore();
+            });
+        }
 
         ctx.restore();
         ctx.globalCompositeOperation = 'source-over';
@@ -640,7 +654,7 @@
 
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (!isDragging) {
+        if (!isDragging && !isCloning) {
             spriteX += dx;
             spriteY += dy;
             if (spriteX < 0 || spriteX > canvas.width - sprite.width * scale) {
@@ -649,13 +663,8 @@
             if (spriteY < 0 || spriteY > canvas.height - sprite.height * scale) {
                 dy = -dy;
             }
-            frameCounter++;
-            if (frameCounter >= 60) {
-                setConstantVelocity();
-                frameCounter = 0;
-            }
         }
-        if (trailAlways || isDragging) {
+        if (trailAlways || isDragging || isCloning) {
             trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
             applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
         }
@@ -670,20 +679,44 @@
         requestAnimationFrame(animate);
     }
 
+    function isOverControlPanel(x, y) {
+        const panel = document.getElementById('control-panel');
+        const rect = panel.getBoundingClientRect();
+        return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    }
+
     canvas.addEventListener('mousedown', (e) => {
+        e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-        if (isMouseOverSprite(mouseX, mouseY)) {
-            isDragging = true;
+        if (!isOverControlPanel(e.clientX, e.clientY)) {
+            if (effects.includes('clone') && e.altKey) {
+                isCloneSourceSelecting = true;
+                cloneSourceX = mouseX;
+                cloneSourceY = mouseY;
+                console.log('Clone source set at:', cloneSourceX, cloneSourceY);
+            } else if (effects.includes('clone')) {
+                isCloning = true;
+                spriteX = mouseX - (sprite.width * scale) / 2;
+                spriteY = mouseY - (sprite.height * scale) / 2;
+            } else {
+                spriteX = mouseX - (sprite.width * scale) / 2;
+                spriteY = mouseY - (sprite.height * scale) / 2;
+                isDragging = isMouseOverSprite(mouseX, mouseY);
+            }
         }
     });
 
     canvas.addEventListener('mousemove', (e) => {
+        e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
         if (isDragging) {
+            spriteX = mouseX - (sprite.width * scale) / 2;
+            spriteY = mouseY - (sprite.height * scale) / 2;
+        } else if (isCloning) {
             spriteX = mouseX - (sprite.width * scale) / 2;
             spriteY = mouseY - (sprite.height * scale) / 2;
         }
@@ -692,12 +725,20 @@
     canvas.addEventListener('mouseup', (e) => {
         if (isDragging) {
             isDragging = false;
-            setConstantVelocity();
+            resetVelocity();
+        }
+        if (isCloneSourceSelecting) {
+            isCloneSourceSelecting = false;
+        }
+        if (isCloning) {
+            isCloning = false;
         }
     });
 
     canvas.addEventListener('mouseout', () => {
         isDragging = false;
+        isCloneSourceSelecting = false;
+        isCloning = false;
     });
 
     canvas.addEventListener('touchstart', (e) => {
@@ -706,32 +747,57 @@
         const touch = e.touches[0];
         const touchX = touch.clientX - rect.left;
         const touchY = touch.clientY - rect.top;
-        if (isMouseOverSprite(touchX, touchY)) {
-            isDragging = true;
+        if (!isOverControlPanel(touch.clientX, touch.clientY)) {
+            if (effects.includes('clone') && e.touches.length === 2) {
+                isCloneSourceSelecting = true;
+                cloneSourceX = touchX;
+                cloneSourceY = touchY;
+                console.log('Clone source set at:', cloneSourceX, cloneSourceY);
+            } else if (effects.includes('clone')) {
+                isCloning = true;
+                spriteX = touchX - (sprite.width * scale) / 2;
+                spriteY = touchY - (sprite.height * scale) / 2;
+            } else {
+                spriteX = touchX - (sprite.width * scale) / 2;
+                spriteY = touchY - (sprite.height * scale) / 2;
+                isDragging = isMouseOverSprite(touchX, touchY);
+            }
         }
     });
 
     canvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0];
+        const touchX = touch.clientX - rect.left;
+        const touchY = touch.clientY - rect.top;
         if (isDragging) {
-            const rect = canvas.getBoundingClientRect();
-            const touch = e.touches[0];
-            const touchX = touch.clientX - rect.left;
-            const touchY = touch.clientY - rect.top;
+            spriteX = touchX - (sprite.width * scale) / 2;
+            spriteY = touchY - (sprite.height * scale) / 2;
+        } else if (isCloning) {
             spriteX = touchX - (sprite.width * scale) / 2;
             spriteY = touchY - (sprite.height * scale) / 2;
         }
     });
 
     canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
         if (isDragging) {
             isDragging = false;
-            setConstantVelocity();
+            resetVelocity();
+        }
+        if (isCloneSourceSelecting) {
+            isCloneSourceSelecting = false;
+        }
+        if (isCloning) {
+            isCloning = false;
         }
     });
 
     canvas.addEventListener('touchcancel', () => {
         isDragging = false;
+        isCloneSourceSelecting = false;
+        isCloning = false;
     });
 
     document.getElementById('fx-list').addEventListener('click', (e) => {
@@ -770,5 +836,3 @@
 </script>
 </body>
 </html>
-
-
