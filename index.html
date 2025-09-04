@@ -1,3 +1,4 @@
+<!-- Trail³r - forevermidi.com 2025 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,6 +47,16 @@ backdrop-filter: blur(2px);
 max-height: 30vh;
 overflow-y: auto;
 pointer-events: auto;
+}
+#control-panel::-webkit-scrollbar {
+width: 8px;
+}
+#control-panel::-webkit-scrollbar-track {
+background: #111;
+}
+#control-panel::-webkit-scrollbar-thumb {
+background: #0f0;
+border-radius: 4px;
 }
 #control-panel h1 {
 font-size: 18.72px;
@@ -103,6 +114,7 @@ width: calc(50% - 1.5px);
 accent-color: #0f0;
 cursor: pointer;
 touch-action: manipulation;
+margin-top: 10px; /* Added margin to separate from FX buttons */
 }
 input[type="range"]::-webkit-slider-runnable-track {
 background: #111;
@@ -171,6 +183,25 @@ box-shadow: none;
 #fx-list li.selected {
 background: #0f0;
 color: #000;
+}
+#snapshot-message {
+position: absolute;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+width: 300px;
+background: rgba(0, 0, 0, 0.6);
+padding: 15px;
+border: 2px solid #0f0;
+border-radius: 8px;
+box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.2);
+backdrop-filter: blur(2px);
+text-align: center;
+color: #0f0;
+font-size: 16px;
+text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
+display: none;
+z-index: 1000;
 }
 @media (max-width: 768px) {
 #fx-list {
@@ -270,6 +301,7 @@ display: flex;
 <input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
 <label for="trail-always">Always Trail</label>
 </div>
+<div id="snapshot-message">no snapshots for now. only panta rhei 🧘</div>
 
 <script>
 const canvas = document.getElementById('canvas');
@@ -295,7 +327,7 @@ const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spi
 let currentBackgroundImage = new Image();
 currentBackgroundImage.src = defaultBackground;
 let trailAlways = false;
-let isSnapshotActive = false; // New flag to control snapshot display
+let isSnapshotActive = false;
 
 sprite.onload = () => {
 const ratio = 218.4 / Math.max(sprite.width, sprite.height);
@@ -363,19 +395,13 @@ alert('Please select an image file for the background.');
 
 function snapshot() {
 console.log('Snapshot button clicked');
-isSnapshotActive = true; // Set flag to pause animation
-ctx.save();
-ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.fillStyle = '#0f0';
-ctx.font = '24px Inter';
-ctx.textAlign = 'center';
-ctx.textBaseline = 'middle';
-ctx.fillText('no snaps for now, just panta rhei', canvas.width / 2, canvas.height / 2);
-ctx.restore();
+isSnapshotActive = true;
+const snapshotMessage = document.getElementById('snapshot-message');
+snapshotMessage.style.display = 'block';
 setTimeout(() => {
-isSnapshotActive = false; // Resume animation after 5 seconds
-}, 5000);
+snapshotMessage.style.display = 'none';
+isSnapshotActive = false;
+}, 4000);
 }
 
 function resetCanvas() {
@@ -402,7 +428,8 @@ li.classList.toggle('selected', li.dataset.value === 'none');
 });
 document.getElementById('trail-always').checked = false;
 trailAlways = false;
-isSnapshotActive = false; // Ensure snapshot is not active
+isSnapshotActive = false;
+document.getElementById('snapshot-message').style.display = 'none';
 animate();
 }
 
@@ -627,7 +654,6 @@ return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= sprite
 
 function animate() {
 if (isSnapshotActive) {
-    // Skip animation loop while snapshot message is displayed
     window.animationFrameId = requestAnimationFrame(animate);
     return;
 }
