@@ -73,7 +73,7 @@
             text-align: center;
             width: calc(50% - 1.5px);
             border-radius: 4px;
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             touch-action: manipulation;
         }
         select {
@@ -95,17 +95,15 @@
             background: #0f0;
             border-radius: 4px;
         }
+        select option:checked {
+            background: #0f0;
+            color: #000;
+        }
         input[type="range"] {
             width: calc(50% - 1.5px);
             accent-color: #0f0;
             cursor: pointer;
             touch-action: manipulation;
-        }
-        button:hover, input[type="file"]:hover, select:hover, input[type="checkbox"]:hover {
-            background: #0f0;
-            color: #000;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0, 255, 0, 0.5);
         }
         button:active, select:active, input:active {
             transform: translateY(0);
@@ -136,13 +134,7 @@
             text-align: center;
             border-radius: 4px;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        #fx-list li:hover {
-            background: #0f0;
-            color: #000;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0, 255, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         #fx-list li:active {
             transform: translateY(0);
@@ -212,6 +204,7 @@
             <option value="shatter">Shatter</option>
             <option value="flip">Flip</option>
             <option value="clone">Clone</option>
+            <option value="haunt">Haunt</option>
         </select>
         <ul id="fx-list">
             <li data-value="none" class="selected">No Effect</li>
@@ -244,6 +237,7 @@
             <li data-value="shatter">Shatter</li>
             <li data-value="flip">Flip</li>
             <li data-value="clone">Clone</li>
+            <li data-value="haunt">Haunt</li>
         </ul>
         <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
         <label for="scale">Scale: <span id="scale-value">1</span></label>
@@ -353,45 +347,64 @@
 
             // Draw background
             if (currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
-                const canvasAspect = canvas.width / canvas.height;
-                const bgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
-                let drawWidth, drawHeight, offsetX, offsetY;
+                const img = new Image();
+                img.src = currentBackgroundImage.src;
+                img.onload = () => {
+                    const canvasAspect = canvas.width / canvas.height;
+                    const bgAspect = img.width / img.height;
+                    let drawWidth, drawHeight, offsetX, offsetY;
+                    if (canvasAspect > bgAspect) {
+                        drawHeight = canvas.height;
+                        drawWidth = drawHeight * bgAspect;
+                        offsetX = (canvas.width - drawWidth) / 2;
+                        offsetY = 0;
+                    } else {
+                        drawWidth = canvas.width;
+                        drawHeight = drawWidth / bgAspect;
+                        offsetX = 0;
+                        offsetY = (canvas.height - drawHeight) / 2;
+                    }
+                    snapshotCtx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
-                if (canvasAspect > bgAspect) {
-                    drawHeight = canvas.height;
-                    drawWidth = drawHeight * bgAspect;
-                    offsetX = (canvas.width - drawWidth) / 2;
-                    offsetY = 0;
-                } else {
-                    drawWidth = canvas.width;
-                    drawHeight = drawWidth / bgAspect;
-                    offsetX = 0;
-                    offsetY = (canvas.height - drawHeight) / 2;
-                }
-                snapshotCtx.drawImage(currentBackgroundImage, offsetX, offsetY, drawWidth, drawHeight);
+                    // Draw trails
+                    snapshotCtx.drawImage(trailCanvas, 0, 0);
+
+                    // Draw sprite
+                    if (sprite.complete && sprite.naturalWidth !== 0) {
+                        applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+                    }
+
+                    // Trigger download
+                    const imgElement = new Image();
+                    imgElement.src = snapshotCanvas.toDataURL('image/png');
+                    imgElement.onload = () => {
+                        const link = document.createElement('a');
+                        link.download = 'trail3r-snapshot.png';
+                        link.href = imgElement.src;
+                        link.click();
+                        console.log('Snapshot downloaded');
+                    };
+                };
+                img.onerror = () => {
+                    throw new Error('Failed to load background for snapshot');
+                };
             } else {
                 snapshotCtx.fillStyle = '#000';
                 snapshotCtx.fillRect(0, 0, canvas.width, canvas.height);
+                snapshotCtx.drawImage(trailCanvas, 0, 0);
+                if (sprite.complete && sprite.naturalWidth !== 0) {
+                    applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+                }
+                const imgElement = new Image();
+                imgElement.src = snapshotCanvas.toDataURL('image/png');
+                imgElement.onload = () => {
+                    const link = document.createElement('a');
+                    link.download = 'trail3r-snapshot.png';
+                    link.href = imgElement.src;
+                    link.click();
+                    console.log('Snapshot downloaded');
+                };
             }
-
-            // Draw trails
-            snapshotCtx.drawImage(trailCanvas, 0, 0);
-
-            // Draw sprite
-            if (sprite.complete && sprite.naturalWidth !== 0) {
-                applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-            }
-
-            // Convert to Blob and download
-            snapshotCanvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = 'trail3r-snapshot.png';
-                link.href = url;
-                link.click();
-                URL.revokeObjectURL(url);
-                console.log('Snapshot downloaded');
-            }, 'image/png');
         } catch (e) {
             console.error('Failed to generate snapshot:', e);
             alert('Snapshot failed. Please check the console for details.');
@@ -472,7 +485,7 @@
 
         if (effects.includes('clone') && isCloning) {
             const brushSize = 50;
-            ctx.drawImage(
+            trailCtx.drawImage(
                 canvas,
                 cloneSourceX - brushSize / 2,
                 cloneSourceY - brushSize / 2,
@@ -526,10 +539,13 @@
                     ctx.drawImage(img, drawX, drawY, width, height);
                 } else if (effect === 'fractal') {
                     ctx.translate(drawX + width / 2, drawY + height / 2);
-                    for (let i = 0; i < 3; i++) {
-                        ctx.scale(0.5, 0.5);
-                        ctx.rotate(Math.PI / 3);
+                    for (let i = 0; i < 4; i++) {
+                        ctx.save();
+                        ctx.scale(0.7 - i * 0.15, 0.7 - i * 0.15);
+                        ctx.rotate((Math.PI / 4) * (i + Math.sin(effectTime * 0.5)));
+                        ctx.globalAlpha = 1.0 - i * 0.2;
                         ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                        ctx.restore();
                     }
                 } else if (effect === 'chromatic') {
                     ctx.translate(drawX, drawY);
@@ -587,6 +603,14 @@
                 } else if (effect === 'flip') {
                     ctx.translate(drawX + width / 2, drawY + height / 2);
                     ctx.scale(-1, 1);
+                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
+                } else if (effect === 'haunt') {
+                    ctx.filter = `grayscale(80%) blur(3px) contrast(150%)`;
+                    ctx.globalAlpha = 0.4 + Math.abs(Math.sin(effectTime * 3)) * 0.3;
+                    const offsetX = (Math.random() - 0.5) * 15;
+                    const offsetY = (Math.random() - 0.5) * 15;
+                    ctx.translate(drawX + offsetX, drawY + offsetY);
+                    ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
                     ctx.drawImage(img, -width / 2, -height / 2, width, height);
                 } else if (effect === 'eraser') {
                     if (ctx === trailCtx) {
@@ -659,9 +683,11 @@
             spriteY += dy;
             if (spriteX < 0 || spriteX > canvas.width - sprite.width * scale) {
                 dx = -dx;
+                resetVelocity(); // Randomize direction on bounce
             }
             if (spriteY < 0 || spriteY > canvas.height - sprite.height * scale) {
                 dy = -dy;
+                resetVelocity(); // Randomize direction on bounce
             }
         }
         if (trailAlways || isDragging || isCloning) {
@@ -673,7 +699,7 @@
         if (effects.includes('hue')) {
             hueValue = (hueValue + 2) % 360;
         }
-        if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter'].some(e => effects.includes(e))) {
+        if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter', 'haunt'].some(e => effects.includes(e))) {
             effectTime += 0.1;
         }
         requestAnimationFrame(animate);
@@ -698,8 +724,8 @@
                 console.log('Clone source set at:', cloneSourceX, cloneSourceY);
             } else if (effects.includes('clone')) {
                 isCloning = true;
-                spriteX = mouseX - (sprite.width * scale) / 2;
-                spriteY = mouseY - (sprite.height * scale) / 2;
+                spriteX = mouseX;
+                spriteY = mouseY;
             } else {
                 spriteX = mouseX - (sprite.width * scale) / 2;
                 spriteY = mouseY - (sprite.height * scale) / 2;
@@ -717,8 +743,8 @@
             spriteX = mouseX - (sprite.width * scale) / 2;
             spriteY = mouseY - (sprite.height * scale) / 2;
         } else if (isCloning) {
-            spriteX = mouseX - (sprite.width * scale) / 2;
-            spriteY = mouseY - (sprite.height * scale) / 2;
+            spriteX = mouseX;
+            spriteY = mouseY;
         }
     });
 
@@ -755,8 +781,8 @@
                 console.log('Clone source set at:', cloneSourceX, cloneSourceY);
             } else if (effects.includes('clone')) {
                 isCloning = true;
-                spriteX = touchX - (sprite.width * scale) / 2;
-                spriteY = touchY - (sprite.height * scale) / 2;
+                spriteX = touchX;
+                spriteY = touchY;
             } else {
                 spriteX = touchX - (sprite.width * scale) / 2;
                 spriteY = touchY - (sprite.height * scale) / 2;
@@ -775,8 +801,8 @@
             spriteX = touchX - (sprite.width * scale) / 2;
             spriteY = touchY - (sprite.height * scale) / 2;
         } else if (isCloning) {
-            spriteX = touchX - (sprite.width * scale) / 2;
-            spriteY = touchY - (sprite.height * scale) / 2;
+            spriteX = touchX;
+            spriteY = touchY;
         }
     });
 
