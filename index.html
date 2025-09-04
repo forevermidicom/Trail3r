@@ -1,864 +1,835 @@
-<!-- Trail³r - forevermidi.com 2025 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Trail³r</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            background: #000;
-            color: #0f0;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-            touch-action: none;
-        }
-        canvas {
-            border: 1px solid #0f0;
-            background: url('https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png') no-repeat center;
-            background-size: cover;
-            background-position: center;
-            width: 100vw;
-            height: 100vh;
-            touch-action: none;
-        }
-        #control-panel {
-            position: absolute;
-            bottom: 15px;
-            width: 218.4px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 7.8px;
-            border: 2px solid #0f0;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 3px;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.2);
-            backdrop-filter: blur(2px);
-            max-height: 30vh;
-            overflow-y: auto;
-            pointer-events: auto;
-        }
-        #control-panel h1 {
-            font-size: 18.72px;
-            margin: 0;
-            text-align: center;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-            width: 100%;
-        }
-        #control-panel p {
-            font-size: 9.36px;
-            margin: 0;
-            text-align: center;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
-            width: 100%;
-        }
-        button, input[type="file"], select, input[type="checkbox"] {
-            background: #111;
-            color: #0f0;
-            border: 1px solid #0f0;
-            font-family: 'Inter', sans-serif;
-            font-size: 12.48px;
-            padding: 4.68px;
-            cursor: pointer;
-            text-align: center;
-            width: calc(50% - 1.5px);
-            border-radius: 4px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            touch-action: manipulation;
-        }
-        select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background: #111 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%230f0"><polygon points="0,0 10,0 5,10"/></svg>') no-repeat right 5px center;
-            background-size: 10px;
-            max-height: 100px;
-            overflow-y: auto;
-        }
-        select::-webkit-scrollbar {
-            width: 8px;
-        }
-        select::-webkit-scrollbar-track {
-            background: #111;
-        }
-        select::-webkit-scrollbar-thumb {
-            background: #0f0;
-            border-radius: 4px;
-        }
-        select option:checked {
-            background: #0f0;
-            color: #000;
-        }
-        input[type="range"] {
-            width: calc(50% - 1.5px);
-            accent-color: #0f0;
-            cursor: pointer;
-            touch-action: manipulation;
-        }
-        button:active, select:active, input:active {
-            transform: translateY(0);
-            box-shadow: none;
-        }
-        label {
-            font-size: 12.48px;
-            text-align: center;
-            text-shadow: 0 0 3px rgba(0, 255, 0, 0.3);
-            width: calc(50% - 1.5px);
-        }
-        #fx-list {
-            width: 100%;
-            max-height: none;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        #fx-list li {
-            background: #111;
-            color: #0f0;
-            border: 1px solid #0f0;
-            font-size: 12.48px;
-            padding: 4.68px;
-            text-align: center;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        #fx-list li:active {
-            transform: translateY(0);
-            box-shadow: none;
-        }
-        #fx-list li.selected {
-            background: #0f0;
-            color: #000;
-        }
-        @media (max-width: 768px) {
-            #fx-list {
-                display: none;
-            }
-            select#fxOthers {
-                display: block;
-            }
-        }
-        @media (min-width: 769px) {
-            select#fxOthers {
-                display: none;
-            }
-            #fx-list {
-                display: flex;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Trail³r</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap" rel="stylesheet">
+<style>
+body {
+margin: 0;
+background: #000;
+color: #0f0;
+font-family: 'Inter', sans-serif;
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+overflow: hidden;
+touch-action: none;
+}
+canvas {
+border: 1px solid #0f0;
+background: url('https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png') no-repeat center;
+background-size: cover;
+background-position: center;
+width: 100vw;
+height: 100vh;
+touch-action: none;
+}
+#control-panel {
+position: absolute;
+bottom: 15px;
+width: 218.4px;
+background: rgba(0, 0, 0, 0.6);
+padding: 7.8px;
+border: 2px solid #0f0;
+border-radius: 8px;
+display: flex;
+flex-direction: row;
+flex-wrap: wrap;
+gap: 3px;
+justify-content: center;
+align-items: center;
+box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.2);
+backdrop-filter: blur(2px);
+max-height: 30vh;
+overflow-y: auto;
+pointer-events: auto;
+}
+#control-panel h1 {
+font-size: 18.72px;
+margin: 0;
+text-align: center;
+text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+width: 100%;
+}
+#control-panel p {
+font-size: 9.36px;
+margin: 0;
+text-align: center;
+text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
+width: 100%;
+}
+button, input[type="file"], select, input[type="checkbox"] {
+background: #111;
+color: #0f0;
+border: 1px solid #0f0;
+font-family: 'Inter', sans-serif;
+font-size: 12.48px;
+padding: 4.68px;
+cursor: pointer;
+text-align: center;
+width: calc(50% - 1.5px);
+border-radius: 4px;
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+touch-action: manipulation;
+}
+select {
+appearance: none;
+-webkit-appearance: none;
+-moz-appearance: none;
+background: #111 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%230f0"><polygon points="0,0 10,0 5,10"/></svg>') no-repeat right 5px center;
+background-size: 10px;
+max-height: 100px;
+overflow-y: auto;
+}
+select::-webkit-scrollbar {
+width: 8px;
+}
+select::-webkit-scrollbar-track {
+background: #111;
+}
+select::-webkit-scrollbar-thumb {
+background: #0f0;
+border-radius: 4px;
+}
+select option:checked {
+background: #0f0;
+color: #000;
+}
+input[type="range"] {
+width: calc(50% - 1.5px);
+accent-color: #0f0;
+cursor: pointer;
+touch-action: manipulation;
+}
+button:active, select:active, input:active {
+transform: translateY(0);
+box-shadow: none;
+}
+label {
+font-size: 12.48px;
+text-align: center;
+text-shadow: 0 0 3px rgba(0, 255, 0, 0.3);
+width: calc(50% - 1.5px);
+}
+#fx-list {
+width: 100%;
+max-height: none;
+list-style: none;
+padding: 0;
+margin: 0;
+display: flex;
+flex-direction: column;
+gap: 3px;
+}
+#fx-list li {
+background: #111;
+color: #0f0;
+border: 1px solid #0f0;
+font-size: 12.48px;
+padding: 4.68px;
+text-align: center;
+border-radius: 4px;
+cursor: pointer;
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+#fx-list li:active {
+transform: translateY(0);
+box-shadow: none;
+}
+#fx-list li.selected {
+background: #0f0;
+color: #000;
+}
+@media (max-width: 768px) {
+#fx-list {
+display: none;
+}
+select#fxOthers {
+display: block;
+}
+}
+@media (min-width: 769px) {
+select#fxOthers {
+display: none;
+}
+#fx-list {
+display: flex;
+}
+}
+</style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
-    <div id="control-panel">
-        <h1>Trail³r</h1>
-        <p>by forevermidi.com</p>
-        <button onclick="document.getElementById('sprite-upload').click()">Load Sprite</button>
-        <input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
-        <button onclick="document.getElementById('bg-upload').click()">Load Background</button>
-        <input type="file" id="bg-upload" accept="image/*" style="display: none;" onchange="loadBackground(event)">
-        <button onclick="snapshot()">Snapshot</button>
-        <button onclick="resetCanvas()">Reset</button>
-        <select id="fxOthers" multiple onchange="changeEffect(this)">
-            <option value="none">No Effect</option>
-            <option value="grayscale">Grayscale</option>
-            <option value="invert">Invert</option>
-            <option value="sepia">Sepia</option>
-            <option value="pixelate">Pixelate</option>
-            <option value="blur">Blur</option>
-            <option value="hue">Hue Rotate</option>
-            <option value="randomHue">Random Hue</option>
-            <option value="contrast">Contrast</option>
-            <option value="brightness">Brightness</option>
-            <option value="posterize">Posterize</option>
-            <option value="eraser">Eraser</option>
-            <option value="distort">Distort</option>
-            <option value="flicker">Flicker</option>
-            <option value="mirror">Mirror</option>
-            <option value="420">420</option>
-            <option value="vortex">Vortex</option>
-            <option value="ripple">Ripple</option>
-            <option value="neon">Neon</option>
-            <option value="fractal">Fractal</option>
-            <option value="chromatic">Chromatic</option>
-            <option value="dreamscape">Dreamscape</option>
-            <option value="warp">Warp</option>
-            <option value="static">Static</option>
-            <option value="ghost">Ghost</option>
-            <option value="melt">Melt</option>
-            <option value="pulse">Pulse</option>
-            <option value="shatter">Shatter</option>
-            <option value="flip">Flip</option>
-            <option value="clone">Clone</option>
-            <option value="haunt">Haunt</option>
-        </select>
-        <ul id="fx-list">
-            <li data-value="none" class="selected">No Effect</li>
-            <li data-value="grayscale">Grayscale</li>
-            <li data-value="invert">Invert</li>
-            <li data-value="sepia">Sepia</li>
-            <li data-value="pixelate">Pixelate</li>
-            <li data-value="blur">Blur</li>
-            <li data-value="hue">Hue Rotate</li>
-            <li data-value="randomHue">Random Hue</li>
-            <li data-value="contrast">Contrast</li>
-            <li data-value="brightness">Brightness</li>
-            <li data-value="posterize">Posterize</li>
-            <li data-value="eraser">Eraser</li>
-            <li data-value="distort">Distort</li>
-            <li data-value="flicker">Flicker</li>
-            <li data-value="mirror">Mirror</li>
-            <li data-value="420">420</li>
-            <li data-value="vortex">Vortex</li>
-            <li data-value="ripple">Ripple</li>
-            <li data-value="neon">Neon</li>
-            <li data-value="fractal">Fractal</li>
-            <li data-value="chromatic">Chromatic</li>
-            <li data-value="dreamscape">Dreamscape</li>
-            <li data-value="warp">Warp</li>
-            <li data-value="static">Static</li>
-            <li data-value="ghost">Ghost</li>
-            <li data-value="melt">Melt</li>
-            <li data-value="pulse">Pulse</li>
-            <li data-value="shatter">Shatter</li>
-            <li data-value="flip">Flip</li>
-            <li data-value="clone">Clone</li>
-            <li data-value="haunt">Haunt</li>
-        </ul>
-        <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
-        <label for="scale">Scale: <span id="scale-value">1</span></label>
-        <input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
-        <label for="trail-always">Always Trail</label>
-    </div>
+<canvas id="canvas"></canvas>
+<div id="control-panel">
+<h1>Trail³r</h1>
+<p>by forevermidi.com</p>
+<button onclick="document.getElementById('sprite-upload').click()">Load Sprite</button>
+<input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
+<button onclick="document.getElementById('bg-upload').click()">Load Background</button>
+<input type="file" id="bg-upload" accept="image/*" style="display: none;" onchange="loadBackground(event)">
+<button onclick="snapshot()">Snapshot</button>
+<button onclick="resetCanvas()">Reset</button>
+<select id="fxOthers" multiple onchange="changeEffect(this)">
+<option value="none">No Effect</option>
+<option value="grayscale">Grayscale</option>
+<option value="invert">Invert</option>
+<option value="sepia">Sepia</option>
+<option value="pixelate">Pixelate</option>
+<option value="blur">Blur</option>
+<option value="hue">Hue Rotate</option>
+<option value="randomHue">Random Hue</option>
+<option value="contrast">Contrast</option>
+<option value="brightness">Brightness</option>
+<option value="posterize">Posterize</option>
+<option value="eraser">Eraser</option>
+<option value="distort">Distort</option>
+<option value="flicker">Flicker</option>
+<option value="mirror">Mirror</option>
+<option value="420">420</option>
+<option value="vortex">Vortex</option>
+<option value="ripple">Ripple</option>
+<option value="neon">Neon</option>
+<option value="fractal">Fractal</option>
+<option value="chromatic">Chromatic</option>
+<option value="dreamscape">Dreamscape</option>
+<option value="warp">Warp</option>
+<option value="static">Static</option>
+<option value="ghost">Ghost</option>
+<option value="melt">Melt</option>
+<option value="pulse">Pulse</option>
+<option value="shatter">Shatter</option>
+<option value="flip">Flip</option>
+<option value="clone">Clone</option>
+<option value="haunt">Haunt</option>
+</select>
+<ul id="fx-list">
+<li data-value="none" class="selected">No Effect</li>
+<li data-value="grayscale">Grayscale</li>
+<li data-value="invert">Invert</li>
+<li data-value="sepia">Sepia</li>
+<li data-value="pixelate">Pixelate</li>
+<li data-value="blur">Blur</li>
+<li data-value="hue">Hue Rotate</li>
+<li data-value="randomHue">Random Hue</li>
+<li data-value="contrast">Contrast</li>
+<li data-value="brightness">Brightness</li>
+<li data-value="posterize">Posterize</li>
+<li data-value="eraser">Eraser</li>
+<li data-value="distort">Distort</li>
+<li data-value="flicker">Flicker</li>
+<li data-value="mirror">Mirror</li>
+<li data-value="420">420</li>
+<li data-value="vortex">Vortex</li>
+<li data-value="ripple">Ripple</li>
+<li data-value="neon">Neon</li>
+<li data-value="fractal">Fractal</li>
+<li data-value="chromatic">Chromatic</li>
+<li data-value="dreamscape">Dreamscape</li>
+<li data-value="warp">Warp</li>
+<li data-value="static">Static</li>
+<li data-value="ghost">Ghost</li>
+<li data-value="melt">Melt</li>
+<li data-value="pulse">Pulse</li>
+<li data-value="shatter">Shatter</li>
+<li data-value="flip">Flip</li>
+<li data-value="clone">Clone</li>
+<li data-value="haunt">Haunt</li>
+</ul>
+<input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
+<label for="scale">Scale: <span id="scale-value">1</span></label>
+<input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
+<label for="trail-always">Always Trail</label>
+</div>
 
 <script>
-    const canvas = document.getElementById('canvas');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    let sprite = new Image();
-    sprite.src = 'https://freepngimg.com/thumb/emoji/104116-face-emoji-3d-download-free-image.png';
-    let spriteX = canvas.width / 2, spriteY = canvas.height / 2;
-    let dx = 0, dy = 0;
-    const speed = 1.5;
-    let scale = 1;
-    let effects = ['none'];
-    let isDragging = false;
-    let trailCanvas = document.createElement('canvas');
-    trailCanvas.width = canvas.width;
-    trailCanvas.height = canvas.height;
-    const trailCtx = trailCanvas.getContext('2d', { willReadFrequently: true });
-    let spriteHistory = [];
-    let hueValue = 0;
-    let effectTime = 0;
-    const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png';
-    let currentBackgroundImage = new Image();
-    currentBackgroundImage.src = defaultBackground;
-    let trailAlways = false;
-    let isCloneSourceSelecting = false;
-    let cloneSourceX = 0, cloneSourceY = 0;
-    let isCloning = false;
+const canvas = document.getElementById('canvas');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+let sprite = new Image();
+const defaultSprite = 'https://freepngimg.com/thumb/emoji/104116-face-emoji-3d-download-free-image.png';
+sprite.src = defaultSprite;
+let spriteX = canvas.width / 2, spriteY = canvas.height / 2;
+let dx = 0, dy = 0;
+const speed = 1.5;
+let scale = 1;
+let effects = ['none'];
+let isDragging = false;
+let trailCanvas = document.createElement('canvas');
+trailCanvas.width = canvas.width;
+trailCanvas.height = canvas.height;
+const trailCtx = trailCanvas.getContext('2d', { willReadFrequently: true });
+let hueValue = 0;
+let effectTime = 0;
+const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png';
+let currentBackgroundImage = new Image();
+currentBackgroundImage.src = defaultBackground;
+let trailAlways = false;
+let isCloning = false;
+let isCloneSampleTaker = false;
 
-    sprite.onload = () => {
-        const ratio = 218.4 / Math.max(sprite.width, sprite.height);
-        sprite.width = 218.4;
-        sprite.height *= ratio;
-        spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
-        spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-        resetVelocity();
-        animate();
-    };
-    sprite.onerror = () => {
-        console.error('Failed to load sprite. Using fallback.');
-        sprite.src = 'https://via.placeholder.com/218.4x218.4.png?text=Sprite';
-    };
+sprite.onload = () => {
+const ratio = 218.4 / Math.max(sprite.width, sprite.height);
+sprite.width = 218.4;
+sprite.height *= ratio;
+spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
+spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
+if (!isDragging) {
+resetVelocity();
+}
+};
+sprite.onerror = () => {
+console.error('Failed to load sprite. Using fallback.');
+sprite.src = 'https://via.placeholder.com/218.4x218.4.png?text=Sprite';
+};
 
-    currentBackgroundImage.onload = () => {
-        canvas.style.background = `url(${currentBackgroundImage.src}) no-repeat center`;
-        canvas.style.backgroundSize = 'cover';
-        console.log('Default background loaded');
-    };
-    currentBackgroundImage.onerror = () => {
-        console.error('Failed to load default background');
-        canvas.style.background = 'black';
-    };
+currentBackgroundImage.onload = () => {
+canvas.style.background = `url(${currentBackgroundImage.src}) no-repeat center`;
+canvas.style.backgroundSize = 'cover';
+console.log('Default background loaded');
+};
+currentBackgroundImage.onerror = () => {
+console.error('Failed to load default background');
+canvas.style.background = 'black';
+};
 
-    function resetVelocity() {
-        const angle = Math.random() * 2 * Math.PI;
-        dx = Math.cos(angle) * speed;
-        dy = Math.sin(angle) * speed;
-    }
+function resetVelocity() {
+const angle = Math.random() * 2 * Math.PI;
+dx = Math.cos(angle) * speed;
+dy = Math.sin(angle) * speed;
+}
 
-    function loadSprite(event) {
-        const file = event.target.files[0];
-        if (file) {
-            console.log('Loading sprite:', file.name);
-            sprite.src = URL.createObjectURL(file);
-            spriteHistory.push(sprite.src);
-        } else {
-            console.error('No sprite file selected');
-            alert('Please select an image file for the sprite.');
-        }
-    }
+function loadSprite(event) {
+const file = event.target.files[0];
+if (file) {
+console.log('Loading sprite:', file.name);
+sprite.src = URL.createObjectURL(file);
+} else {
+console.error('No sprite file selected');
+alert('Please select an image file for the sprite.');
+}
+}
 
-    function loadBackground(event) {
-        const file = event.target.files[0];
-        if (file) {
-            console.log('Loading background:', file.name);
-            const bg = new Image();
-            bg.src = URL.createObjectURL(file);
-            bg.onload = () => {
-                currentBackgroundImage = bg;
-                canvas.style.background = `url(${bg.src}) no-repeat center`;
-                canvas.style.backgroundSize = 'cover';
-                console.log('Background loaded successfully');
-            };
-            bg.onerror = () => {
-                console.error('Failed to load background image');
-                alert('Failed to load background image. Please try another file.');
-            };
-        } else {
-            console.error('No background file selected');
-            alert('Please select an image file for the background.');
-        }
-    }
+function loadBackground(event) {
+const file = event.target.files[0];
+if (file) {
+console.log('Loading background:', file.name);
+const bg = new Image();
+bg.src = URL.createObjectURL(file);
+bg.onload = () => {
+currentBackgroundImage = bg;
+canvas.style.background = `url(${bg.src}) no-repeat center`;
+canvas.style.backgroundSize = 'cover';
+console.log('Background loaded successfully');
+};
+bg.onerror = () => {
+console.error('Failed to load background image');
+alert('Failed to load background image. Please try another file.');
+};
+} else {
+console.error('No background file selected');
+alert('Please select an image file for the background.');
+}
+}
 
-    function snapshot() {
-        console.log('Snapshot button clicked');
-        try {
-            const snapshotCanvas = document.createElement('canvas');
-            snapshotCanvas.width = canvas.width;
-            snapshotCanvas.height = canvas.height;
-            const snapshotCtx = snapshotCanvas.getContext('2d');
+function snapshot() {
+console.log('Snapshot button clicked');
+try {
+const snapshotCanvas = document.createElement('canvas');
+snapshotCanvas.width = canvas.width;
+snapshotCanvas.height = canvas.height;
+const snapshotCtx = snapshotCanvas.getContext('2d');
 
-            // Draw background
-            if (currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
-                const img = new Image();
-                img.src = currentBackgroundImage.src;
-                img.onload = () => {
-                    const canvasAspect = canvas.width / canvas.height;
-                    const bgAspect = img.width / img.height;
-                    let drawWidth, drawHeight, offsetX, offsetY;
-                    if (canvasAspect > bgAspect) {
-                        drawHeight = canvas.height;
-                        drawWidth = drawHeight * bgAspect;
-                        offsetX = (canvas.width - drawWidth) / 2;
-                        offsetY = 0;
-                    } else {
-                        drawWidth = canvas.width;
-                        drawHeight = drawWidth / bgAspect;
-                        offsetX = 0;
-                        offsetY = (canvas.height - drawHeight) / 2;
-                    }
-                    snapshotCtx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+// Draw background
+if (currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
+const img = new Image();
+img.src = currentBackgroundImage.src;
+img.onload = () => {
+const canvasAspect = canvas.width / canvas.height;
+const bgAspect = img.width / img.height;
+let drawWidth, drawHeight, offsetX, offsetY;
+if (canvasAspect > bgAspect) {
+drawHeight = canvas.height;
+drawWidth = drawHeight * bgAspect;
+offsetX = (canvas.width - drawWidth) / 2;
+offsetY = 0;
+} else {
+drawWidth = canvas.width;
+drawHeight = drawWidth / bgAspect;
+offsetX = 0;
+offsetY = (canvas.height - drawHeight) / 2;
+}
+snapshotCtx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
-                    // Draw trails
-                    snapshotCtx.drawImage(trailCanvas, 0, 0);
+// Draw trails
+snapshotCtx.drawImage(trailCanvas, 0, 0);
 
-                    // Draw sprite
-                    if (sprite.complete && sprite.naturalWidth !== 0) {
-                        applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-                    }
+// Draw sprite
+if (sprite.complete && sprite.naturalWidth !== 0) {
+applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+}
 
-                    // Trigger download
-                    const imgElement = new Image();
-                    imgElement.src = snapshotCanvas.toDataURL('image/png');
-                    imgElement.onload = () => {
-                        const link = document.createElement('a');
-                        link.download = 'trail3r-snapshot.png';
-                        link.href = imgElement.src;
-                        link.click();
-                        console.log('Snapshot downloaded');
-                    };
-                };
-                img.onerror = () => {
-                    throw new Error('Failed to load background for snapshot');
-                };
-            } else {
-                snapshotCtx.fillStyle = '#000';
-                snapshotCtx.fillRect(0, 0, canvas.width, canvas.height);
-                snapshotCtx.drawImage(trailCanvas, 0, 0);
-                if (sprite.complete && sprite.naturalWidth !== 0) {
-                    applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-                }
-                const imgElement = new Image();
-                imgElement.src = snapshotCanvas.toDataURL('image/png');
-                imgElement.onload = () => {
-                    const link = document.createElement('a');
-                    link.download = 'trail3r-snapshot.png';
-                    link.href = imgElement.src;
-                    link.click();
-                    console.log('Snapshot downloaded');
-                };
-            }
-        } catch (e) {
-            console.error('Failed to generate snapshot:', e);
-            alert('Snapshot failed. Please check the console for details.');
-        }
-    }
+// Trigger download
+const link = document.createElement('a');
+link.download = 'trail3r-snapshot.png';
+link.href = snapshotCanvas.toDataURL('image/png');
+link.click();
+console.log('Snapshot downloaded');
+};
+img.onerror = () => {
+console.error('Failed to load background for snapshot');
+};
+} else {
+snapshotCtx.fillStyle = '#000';
+snapshotCtx.fillRect(0, 0, canvas.width, canvas.height);
+snapshotCtx.drawImage(trailCanvas, 0, 0);
+if (sprite.complete && sprite.naturalWidth !== 0) {
+applyEffects(snapshotCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+}
+const link = document.createElement('a');
+link.download = 'trail3r-snapshot.png';
+link.href = snapshotCanvas.toDataURL('image/png');
+link.click();
+console.log('Snapshot downloaded');
+}
+} catch (e) {
+console.error('Failed to generate snapshot:', e);
+alert('Snapshot failed. Please check the console for details.');
+}
+}
 
-    function resetCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
-        sprite.src = 'https://freepngimg.com/thumb/emoji/104116-face-emoji-3d-download-free-image.png';
-        currentBackgroundImage.src = defaultBackground;
-        canvas.style.background = `url(${defaultBackground}) no-repeat center`;
-        canvas.style.backgroundSize = 'cover';
-        spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
-        spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-        dx = 0;
-        dy = 0;
-        resetVelocity();
-        spriteHistory = [sprite.src];
-        effects = ['none'];
-        const select = document.getElementById('fxOthers');
-        Array.from(select.options).forEach(option => option.selected = option.value === 'none');
-        const fxList = document.getElementById('fx-list');
-        Array.from(fxList.children).forEach(li => {
-            li.classList.toggle('selected', li.dataset.value === 'none');
-        });
-        document.getElementById('trail-always').checked = false;
-        trailAlways = false;
-        isCloneSourceSelecting = false;
-        isCloning = false;
-    }
+function resetCanvas() {
+if (window.animationFrameId) {
+cancelAnimationFrame(window.animationFrameId);
+}
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+sprite.src = defaultSprite;
+currentBackgroundImage.src = defaultBackground;
+canvas.style.background = `url(${defaultBackground}) no-repeat center`;
+canvas.style.backgroundSize = 'cover';
+sprite.width = 218.4;
+sprite.height = 218.4;
+spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
+spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
+resetVelocity();
+effects = ['none'];
+const select = document.getElementById('fxOthers');
+Array.from(select.options).forEach(option => option.selected = option.value === 'none');
+const fxList = document.getElementById('fx-list');
+Array.from(fxList.children).forEach(li => {
+li.classList.toggle('selected', li.dataset.value === 'none');
+});
+document.getElementById('trail-always').checked = false;
+trailAlways = false;
+isCloning = false;
+isCloneSampleTaker = false;
+animate();
+}
 
-    function changeEffect(element) {
-        if (element.tagName === 'SELECT') {
-            effects = Array.from(element.selectedOptions).map(option => option.value);
-        } else {
-            const value = element.dataset.value;
-            if (effects.includes(value)) {
-                effects = effects.filter(effect => effect !== value);
-                element.classList.remove('selected');
-                if (effects.length === 0) {
-                    effects = ['none'];
-                    document.querySelector('#fx-list li[data-value="none"]').classList.add('selected');
-                }
-            } else {
-                if (value === 'none') {
-                    effects = ['none'];
-                    Array.from(document.getElementById('fx-list').children).forEach(li => {
-                        li.classList.toggle('selected', li.dataset.value === 'none');
-                    });
-                } else {
-                    effects = effects.filter(effect => effect !== 'none');
-                    effects.push(value);
-                    element.classList.add('selected');
-                    document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
-                }
-            }
-        }
-        console.log('Selected effects:', effects);
-        const select = document.getElementById('fxOthers');
-        Array.from(select.options).forEach(option => {
-            option.selected = effects.includes(option.value);
-        });
-    }
+function changeEffect(element) {
+if (element.tagName === 'SELECT') {
+effects = Array.from(element.selectedOptions).map(option => option.value);
+} else {
+const value = element.dataset.value;
+if (effects.includes(value)) {
+effects = effects.filter(effect => effect !== value);
+element.classList.remove('selected');
+if (effects.length === 0) {
+effects = ['none'];
+document.querySelector('#fx-list li[data-value="none"]').classList.add('selected');
+}
+} else {
+if (value === 'none') {
+effects = ['none'];
+Array.from(document.getElementById('fx-list').children).forEach(li => {
+li.classList.toggle('selected', li.dataset.value === 'none');
+});
+} else {
+effects = effects.filter(effect => effect !== 'none');
+effects.push(value);
+element.classList.add('selected');
+document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
+}
+}
+}
+isCloneSampleTaker = effects.includes('clone');
+console.log('Selected effects:', effects);
+const select = document.getElementById('fxOthers');
+Array.from(select.options).forEach(option => {
+option.selected = effects.includes(option.value);
+});
+}
 
-    function changeScale(value) {
-        scale = value;
-        document.getElementById('scale-value').textContent = value;
-    }
+function changeScale(value) {
+scale = value;
+document.getElementById('scale-value').textContent = value;
+}
 
-    function toggleTrailAlways(checked) {
-        trailAlways = checked;
-    }
+function toggleTrailAlways(checked) {
+trailAlways = checked;
+}
 
-    function applyEffects(ctx, img, x, y, width, height) {
-        ctx.save();
-        let drawX = x, drawY = y;
+function applyEffects(ctx, img, x, y, width, height) {
+ctx.save();
+ctx.translate(x, y);
 
-        if (effects.includes('clone') && isCloning) {
-            const brushSize = 50;
-            trailCtx.drawImage(
-                canvas,
-                cloneSourceX - brushSize / 2,
-                cloneSourceY - brushSize / 2,
-                brushSize,
-                brushSize,
-                drawX,
-                drawY,
-                brushSize,
-                brushSize
-            );
-        } else {
-            effects.forEach(effect => {
-                ctx.save();
-                if (effect === 'distort') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.scale(1 + Math.sin(effectTime) * 0.2, 1 + Math.cos(effectTime) * 0.2);
-                    ctx.translate(-(drawX + width / 2), -(drawY + height / 2));
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'flicker') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
-                    ctx.filter = `hue-rotate(${Math.random() * 60}deg)`;
-                    ctx.globalAlpha = 0.9;
-                    const offsetX = (Math.random() - 0.5) * 10;
-                    const offsetY = (Math.random() - 0.5) * 10;
-                    ctx.drawImage(img, offsetX - width / 2, offsetY - width / 2, width, height);
-                } else if (effect === 'mirror') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.scale(-1, 1);
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                    ctx.scale(-1, 1);
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === '420') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.rotate(Math.sin(effectTime) * Math.PI);
-                    ctx.scale(1 + Math.sin(effectTime * 2) * 0.3, 1 + Math.cos(effectTime * 2) * 0.3);
-                    ctx.filter = `hue-rotate(${Math.sin(effectTime) * 360}deg) saturate(200%) contrast(150%)`;
-                    ctx.globalAlpha = 0.8 + Math.sin(effectTime * 3) * 0.2;
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === 'vortex') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.rotate(Math.sin(effectTime * 0.5) * Math.PI);
-                    ctx.scale(1 + Math.sin(effectTime) * 0.1, 1 + Math.cos(effectTime) * 0.1);
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === 'ripple') {
-                    const offset = Math.sin(effectTime * 2) * 10;
-                    ctx.translate(drawX + offset, drawY + offset);
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === 'neon') {
-                    ctx.filter = 'contrast(200%) brightness(150%) drop-shadow(0 0 10px #0f0)';
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'fractal') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    for (let i = 0; i < 4; i++) {
-                        ctx.save();
-                        ctx.scale(0.7 - i * 0.15, 0.7 - i * 0.15);
-                        ctx.rotate((Math.PI / 4) * (i + Math.sin(effectTime * 0.5)));
-                        ctx.globalAlpha = 1.0 - i * 0.2;
-                        ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                        ctx.restore();
-                    }
-                } else if (effect === 'chromatic') {
-                    ctx.translate(drawX, drawY);
-                    ctx.filter = 'hue-rotate(0deg)';
-                    ctx.drawImage(img, 2, 2, width, height);
-                    ctx.filter = 'hue-rotate(120deg)';
-                    ctx.drawImage(img, -2, -2, width, height);
-                    ctx.filter = 'hue-rotate(240deg)';
-                    ctx.drawImage(img, 0, 0, width, height);
-                } else if (effect === 'dreamscape') {
-                    ctx.filter = `blur(3px) opacity(0.7) hue-rotate(${Math.sin(effectTime) * 180}deg)`;
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.scale(1 + Math.sin(effectTime) * 0.15, 1 + Math.cos(effectTime) * 0.15);
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === 'warp') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.scale(1 + Math.sin(effectTime * 1.5) * 0.3, 1 + Math.cos(effectTime * 1.5) * 0.3);
-                    ctx.rotate(Math.sin(effectTime * 0.8) * 0.5);
-                    ctx.filter = `contrast(150%) hue-rotate(${Math.sin(effectTime) * 90}deg)`;
-                    ctx.globalAlpha = 0.7;
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === 'static') {
-                    ctx.filter = `contrast(200%) brightness(120%)`;
-                    ctx.globalAlpha = Math.random() * 0.3 + 0.7;
-                    const noise = Math.random() * 10 - 5;
-                    ctx.drawImage(img, drawX + noise, drawY + noise, width, height);
-                } else if (effect === 'ghost') {
-                    ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
-                    ctx.filter = `blur(2px) hue-rotate(${Math.sin(effectTime * 0.5) * 180}deg)`;
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                    ctx.globalAlpha = 0.3;
-                    ctx.drawImage(img, drawX + 10, drawY + 10, width, height);
-                } else if (effect === 'melt') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.scale(1, 1 + Math.sin(effectTime * 1.2) * 0.4);
-                    ctx.filter = `contrast(150%) saturate(200%)`;
-                    ctx.drawImage(img, -width / 2, drawY - height / 2 + Math.sin(effectTime) * 20, width, height);
-                } else if (effect === 'pulse') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    const pulseScale = 1 + Math.abs(Math.sin(effectTime * 2)) * 0.2;
-                    ctx.scale(pulseScale, pulseScale);
-                    ctx.filter = `brightness(150%) contrast(150%)`;
-                    ctx.globalAlpha = 0.8;
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === 'shatter') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    for (let i = 0; i < 3; i++) {
-                        ctx.save();
-                        ctx.rotate(Math.random() * 0.2 - 0.1);
-                        ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
-                        ctx.globalAlpha = 0.6 + Math.random() * 0.4;
-                        ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                        ctx.restore();
-                    }
-                } else if (effect === 'flip') {
-                    ctx.translate(drawX + width / 2, drawY + height / 2);
-                    ctx.scale(-1, 1);
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === 'haunt') {
-                    ctx.filter = `grayscale(80%) blur(3px) contrast(150%)`;
-                    ctx.globalAlpha = 0.4 + Math.abs(Math.sin(effectTime * 3)) * 0.3;
-                    const offsetX = (Math.random() - 0.5) * 15;
-                    const offsetY = (Math.random() - 0.5) * 15;
-                    ctx.translate(drawX + offsetX, drawY + offsetY);
-                    ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
-                    ctx.drawImage(img, -width / 2, -height / 2, width, height);
-                } else if (effect === 'eraser') {
-                    if (ctx === trailCtx) {
-                        ctx.globalCompositeOperation = 'destination-out';
-                        ctx.globalAlpha = 0.5;
-                        ctx.drawImage(img, drawX, drawY, width, height);
-                        ctx.globalCompositeOperation = 'source-over';
-                        ctx.globalAlpha = 1.0;
-                    } else {
-                        ctx.drawImage(img, drawX, drawY, width, height);
-                    }
-                } else if (effect === 'grayscale') {
-                    ctx.filter = 'grayscale(100%)';
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'invert') {
-                    ctx.filter = 'invert(100%)';
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'sepia') {
-                    ctx.filter = 'sepia(100%)';
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'pixelate') {
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = 32;
-                    tempCanvas.height = 32;
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCtx.imageSmoothingEnabled = false;
-                    tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-                    ctx.imageSmoothingEnabled = false;
-                    ctx.drawImage(tempCanvas, drawX, drawY, width, height);
-                    ctx.imageSmoothingEnabled = true;
-                } else if (effect === 'blur') {
-                    ctx.filter = 'blur(5px)';
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'hue') {
-                    ctx.filter = `hue-rotate(${hueValue}deg)`;
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'randomHue') {
-                    ctx.filter = `hue-rotate(${Math.random() * 360}deg)`;
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'contrast') {
-                    ctx.filter = 'contrast(300%)';
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'brightness') {
-                    ctx.filter = 'brightness(250%)';
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'posterize') {
-                    ctx.filter = 'contrast(200%) saturate(150%)';
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                } else if (effect === 'none') {
-                    ctx.drawImage(img, drawX, drawY, width, height);
-                }
-                ctx.restore();
-            });
-        }
+effects.forEach(effect => {
+ctx.save();
+if (effect === 'distort') {
+ctx.translate(width / 2, height / 2);
+ctx.scale(1 + Math.sin(effectTime) * 0.2, 1 + Math.cos(effectTime) * 0.2);
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === 'flicker') {
+ctx.translate(width / 2, height / 2);
+ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
+ctx.filter = `hue-rotate(${Math.random() * 60}deg)`;
+ctx.globalAlpha = 0.9;
+const offsetX = (Math.random() - 0.5) * 10;
+const offsetY = (Math.random() - 0.5) * 10;
+ctx.drawImage(img, offsetX - width / 2, offsetY - height / 2, width, height);
+} else if (effect === 'mirror') {
+ctx.translate(width / 2, height / 2);
+ctx.scale(-1, 1);
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+ctx.scale(-1, 1);
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === '420') {
+ctx.translate(width / 2, height / 2);
+ctx.rotate(Math.sin(effectTime) * Math.PI);
+ctx.scale(1 + Math.sin(effectTime * 2) * 0.3, 1 + Math.cos(effectTime * 2) * 0.3);
+ctx.filter = `hue-rotate(${Math.sin(effectTime) * 360}deg) saturate(200%) contrast(150%)`;
+ctx.globalAlpha = 0.8 + Math.sin(effectTime * 3) * 0.2;
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === 'vortex') {
+ctx.translate(width / 2, height / 2);
+ctx.rotate(Math.sin(effectTime * 0.5) * Math.PI);
+ctx.scale(1 + Math.sin(effectTime) * 0.1, 1 + Math.cos(effectTime) * 0.1);
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === 'ripple') {
+const offset = Math.sin(effectTime * 2) * 10;
+ctx.translate(offset, offset);
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'neon') {
+ctx.filter = 'contrast(200%) brightness(150%) drop-shadow(0 0 10px #0f0)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'fractal') {
+ctx.translate(width / 2, height / 2);
+for (let i = 0; i < 4; i++) {
+ctx.save();
+ctx.scale(0.7 - i * 0.15, 0.7 - i * 0.15);
+ctx.rotate((Math.PI / 4) * (i + Math.sin(effectTime * 0.5)));
+ctx.globalAlpha = 1.0 - i * 0.2;
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+ctx.restore();
+}
+} else if (effect === 'chromatic') {
+ctx.filter = 'hue-rotate(0deg)';
+ctx.drawImage(img, 2, 2, width, height);
+ctx.filter = 'hue-rotate(120deg)';
+ctx.drawImage(img, -2, -2, width, height);
+ctx.filter = 'hue-rotate(240deg)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'dreamscape') {
+ctx.filter = `blur(3px) opacity(0.7) hue-rotate(${Math.sin(effectTime) * 180}deg)`;
+ctx.translate(width / 2, height / 2);
+ctx.scale(1 + Math.sin(effectTime) * 0.15, 1 + Math.cos(effectTime) * 0.15);
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === 'warp') {
+ctx.translate(width / 2, height / 2);
+ctx.scale(1 + Math.sin(effectTime * 1.5) * 0.3, 1 + Math.cos(effectTime * 1.5) * 0.3);
+ctx.rotate(Math.sin(effectTime * 0.8) * 0.5);
+ctx.filter = `contrast(150%) hue-rotate(${Math.sin(effectTime) * 90}deg)`;
+ctx.globalAlpha = 0.7;
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === 'static') {
+ctx.filter = `contrast(200%) brightness(120%)`;
+ctx.globalAlpha = Math.random() * 0.3 + 0.7;
+const noise = Math.random() * 10 - 5;
+ctx.drawImage(img, noise, noise, width, height);
+} else if (effect === 'ghost') {
+ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
+ctx.filter = `blur(2px) hue-rotate(${Math.sin(effectTime * 0.5) * 180}deg)`;
+ctx.drawImage(img, 0, 0, width, height);
+ctx.globalAlpha = 0.3;
+ctx.drawImage(img, 10, 10, width, height);
+} else if (effect === 'melt') {
+ctx.translate(width / 2, height / 2);
+ctx.scale(1, 1 + Math.sin(effectTime * 1.2) * 0.4);
+ctx.filter = `contrast(150%) saturate(200%)`;
+ctx.drawImage(img, -width / 2, -height / 2 + Math.sin(effectTime) * 20, width, height);
+} else if (effect === 'pulse') {
+ctx.translate(width / 2, height / 2);
+const pulseScale = 1 + Math.abs(Math.sin(effectTime * 2)) * 0.2;
+ctx.scale(pulseScale, pulseScale);
+ctx.filter = `brightness(150%) contrast(150%)`;
+ctx.globalAlpha = 0.8;
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === 'shatter') {
+ctx.translate(width / 2, height / 2);
+for (let i = 0; i < 3; i++) {
+ctx.save();
+ctx.rotate(Math.random() * 0.2 - 0.1);
+ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
+ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+ctx.restore();
+}
+} else if (effect === 'flip') {
+ctx.translate(width / 2, height / 2);
+ctx.scale(-1, 1);
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === 'haunt') {
+ctx.filter = `grayscale(80%) blur(3px) contrast(150%)`;
+ctx.globalAlpha = 0.4 + Math.abs(Math.sin(effectTime * 3)) * 0.3;
+const offsetX = (Math.random() - 0.5) * 15;
+const offsetY = (Math.random() - 0.5) * 15;
+ctx.translate(offsetX, offsetY);
+ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
+ctx.drawImage(img, -width / 2, -height / 2, width, height);
+} else if (effect === 'eraser') {
+if (ctx === trailCtx) {
+ctx.globalCompositeOperation = 'destination-out';
+ctx.globalAlpha = 0.5;
+ctx.drawImage(img, 0, 0, width, height);
+ctx.globalCompositeOperation = 'source-over';
+ctx.globalAlpha = 1.0;
+} else {
+ctx.drawImage(img, 0, 0, width, height);
+}
+} else if (effect === 'grayscale') {
+ctx.filter = 'grayscale(100%)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'invert') {
+ctx.filter = 'invert(100%)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'sepia') {
+ctx.filter = 'sepia(100%)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'pixelate') {
+const tempCanvas = document.createElement('canvas');
+tempCanvas.width = 32;
+tempCanvas.height = 32;
+const tempCtx = tempCanvas.getContext('2d');
+tempCtx.imageSmoothingEnabled = false;
+tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+ctx.imageSmoothingEnabled = false;
+ctx.drawImage(tempCanvas, 0, 0, width, height);
+ctx.imageSmoothingEnabled = true;
+} else if (effect === 'blur') {
+ctx.filter = 'blur(5px)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'hue') {
+ctx.filter = `hue-rotate(${hueValue}deg)`;
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'randomHue') {
+ctx.filter = `hue-rotate(${Math.random() * 360}deg)`;
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'contrast') {
+ctx.filter = 'contrast(300%)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'brightness') {
+ctx.filter = 'brightness(250%)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'posterize') {
+ctx.filter = 'contrast(200%) saturate(150%)';
+ctx.drawImage(img, 0, 0, width, height);
+} else if (effect === 'none') {
+ctx.drawImage(img, 0, 0, width, height);
+}
+ctx.restore();
+});
+ctx.restore();
+ctx.globalCompositeOperation = 'source-over';
+}
 
-        ctx.restore();
-        ctx.globalCompositeOperation = 'source-over';
-    }
+function isMouseOverSprite(x, y) {
+const scaledWidth = sprite.width * scale;
+const scaledHeight = sprite.height * scale;
+return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= spriteY + scaledHeight;
+}
 
-    function isMouseOverSprite(x, y) {
-        const scaledWidth = sprite.width * scale;
-        const scaledHeight = sprite.height * scale;
-        return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= spriteY + scaledHeight;
-    }
+function animate() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+if (!isDragging && !isCloning && !isCloneSampleTaker) {
+spriteX += dx;
+spriteY += dy;
+if (spriteX < 0 || spriteX > canvas.width - sprite.width * scale) {
+dx = -dx;
+}
+if (spriteY < 0 || spriteY > canvas.height - sprite.height * scale) {
+dy = -dy;
+}
+}
+if (trailAlways || isDragging || isCloning) {
+trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
+applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+}
+ctx.drawImage(trailCanvas, 0, 0);
+applyEffects(ctx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+if (effects.includes('hue')) {
+hueValue = (hueValue + 2) % 360;
+}
+if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter', 'haunt'].some(e => effects.includes(e))) {
+effectTime += 0.1;
+}
+window.animationFrameId = requestAnimationFrame(animate);
+}
 
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (!isDragging && !isCloning) {
-            spriteX += dx;
-            spriteY += dy;
-            if (spriteX < 0 || spriteX > canvas.width - sprite.width * scale) {
-                dx = -dx;
-                resetVelocity(); // Randomize direction on bounce
-            }
-            if (spriteY < 0 || spriteY > canvas.height - sprite.height * scale) {
-                dy = -dy;
-                resetVelocity(); // Randomize direction on bounce
-            }
-        }
-        if (trailAlways || isDragging || isCloning) {
-            trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
-            applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-        }
-        ctx.drawImage(trailCanvas, 0, 0);
-        applyEffects(ctx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-        if (effects.includes('hue')) {
-            hueValue = (hueValue + 2) % 360;
-        }
-        if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter', 'haunt'].some(e => effects.includes(e))) {
-            effectTime += 0.1;
-        }
-        requestAnimationFrame(animate);
-    }
+function isOverControlPanel(x, y) {
+const panel = document.getElementById('control-panel');
+const rect = panel.getBoundingClientRect();
+return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+}
 
-    function isOverControlPanel(x, y) {
-        const panel = document.getElementById('control-panel');
-        const rect = panel.getBoundingClientRect();
-        return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-    }
+canvas.addEventListener('mousedown', (e) => {
+e.preventDefault();
+const rect = canvas.getBoundingClientRect();
+const mouseX = e.clientX - rect.left;
+const mouseY = e.clientY - rect.top;
 
-    canvas.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        if (!isOverControlPanel(e.clientX, e.clientY)) {
-            if (effects.includes('clone') && e.altKey) {
-                isCloneSourceSelecting = true;
-                cloneSourceX = mouseX;
-                cloneSourceY = mouseY;
-                console.log('Clone source set at:', cloneSourceX, cloneSourceY);
-            } else if (effects.includes('clone')) {
-                isCloning = true;
-                spriteX = mouseX;
-                spriteY = mouseY;
-            } else {
-                spriteX = mouseX - (sprite.width * scale) / 2;
-                spriteY = mouseY - (sprite.height * scale) / 2;
-                isDragging = isMouseOverSprite(mouseX, mouseY);
-            }
-        }
-    });
+if (!isOverControlPanel(e.clientX, e.clientY)) {
+if (isCloneSampleTaker) {
+takeCloneSample(mouseX, mouseY);
+} else {
+isDragging = isMouseOverSprite(mouseX, mouseY);
+if (!isDragging) {
+spriteX = mouseX - (sprite.width * scale) / 2;
+spriteY = mouseY - (sprite.height * scale) / 2;
+isDragging = true;
+}
+}
+}
+});
 
-    canvas.addEventListener('mousemove', (e) => {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        if (isDragging) {
-            spriteX = mouseX - (sprite.width * scale) / 2;
-            spriteY = mouseY - (sprite.height * scale) / 2;
-        } else if (isCloning) {
-            spriteX = mouseX;
-            spriteY = mouseY;
-        }
-    });
+canvas.addEventListener('mousemove', (e) => {
+e.preventDefault();
+const rect = canvas.getBoundingClientRect();
+const mouseX = e.clientX - rect.left;
+const mouseY = e.clientY - rect.top;
+if (isDragging) {
+spriteX = mouseX - (sprite.width * scale) / 2;
+spriteY = mouseY - (sprite.height * scale) / 2;
+}
+});
 
-    canvas.addEventListener('mouseup', (e) => {
-        if (isDragging) {
-            isDragging = false;
-            resetVelocity();
-        }
-        if (isCloneSourceSelecting) {
-            isCloneSourceSelecting = false;
-        }
-        if (isCloning) {
-            isCloning = false;
-        }
-    });
+canvas.addEventListener('mouseup', (e) => {
+if (isDragging) {
+isDragging = false;
+resetVelocity();
+}
+});
 
-    canvas.addEventListener('mouseout', () => {
-        isDragging = false;
-        isCloneSourceSelecting = false;
-        isCloning = false;
-    });
+canvas.addEventListener('mouseout', () => {
+if (isDragging) {
+isDragging = false;
+resetVelocity();
+}
+});
 
-    canvas.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const touchX = touch.clientX - rect.left;
-        const touchY = touch.clientY - rect.top;
-        if (!isOverControlPanel(touch.clientX, touch.clientY)) {
-            if (effects.includes('clone') && e.touches.length === 2) {
-                isCloneSourceSelecting = true;
-                cloneSourceX = touchX;
-                cloneSourceY = touchY;
-                console.log('Clone source set at:', cloneSourceX, cloneSourceY);
-            } else if (effects.includes('clone')) {
-                isCloning = true;
-                spriteX = touchX;
-                spriteY = touchY;
-            } else {
-                spriteX = touchX - (sprite.width * scale) / 2;
-                spriteY = touchY - (sprite.height * scale) / 2;
-                isDragging = isMouseOverSprite(touchX, touchY);
-            }
-        }
-    });
+canvas.addEventListener('touchstart', (e) => {
+e.preventDefault();
+const rect = canvas.getBoundingClientRect();
+const touch = e.touches[0];
+const touchX = touch.clientX - rect.left;
+const touchY = touch.clientY - rect.top;
+if (!isOverControlPanel(touch.clientX, touch.clientY)) {
+if (isCloneSampleTaker) {
+takeCloneSample(touchX, touchY);
+} else {
+isDragging = isMouseOverSprite(touchX, touchY);
+if (!isDragging) {
+spriteX = touchX - (sprite.width * scale) / 2;
+spriteY = touchY - (sprite.height * scale) / 2;
+isDragging = true;
+}
+}
+}
+});
 
-    canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const touchX = touch.clientX - rect.left;
-        const touchY = touch.clientY - rect.top;
-        if (isDragging) {
-            spriteX = touchX - (sprite.width * scale) / 2;
-            spriteY = touchY - (sprite.height * scale) / 2;
-        } else if (isCloning) {
-            spriteX = touchX;
-            spriteY = touchY;
-        }
-    });
+canvas.addEventListener('touchmove', (e) => {
+e.preventDefault();
+const rect = canvas.getBoundingClientRect();
+const touch = e.touches[0];
+const touchX = touch.clientX - rect.left;
+const touchY = touch.clientY - rect.top;
+if (isDragging) {
+spriteX = touchX - (sprite.width * scale) / 2;
+spriteY = touchY - (sprite.height * scale) / 2;
+}
+});
 
-    canvas.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        if (isDragging) {
-            isDragging = false;
-            resetVelocity();
-        }
-        if (isCloneSourceSelecting) {
-            isCloneSourceSelecting = false;
-        }
-        if (isCloning) {
-            isCloning = false;
-        }
-    });
+canvas.addEventListener('touchend', (e) => {
+e.preventDefault();
+if (isDragging) {
+isDragging = false;
+resetVelocity();
+}
+});
 
-    canvas.addEventListener('touchcancel', () => {
-        isDragging = false;
-        isCloneSourceSelecting = false;
-        isCloning = false;
-    });
+canvas.addEventListener('touchcancel', () => {
+if (isDragging) {
+isDragging = false;
+resetVelocity();
+}
+});
 
-    document.getElementById('fx-list').addEventListener('click', (e) => {
-        if (e.target.tagName === 'LI') {
-            changeEffect(e.target);
-        }
-    });
+function takeCloneSample(x, y) {
+const sampleSize = 100;
+const tempCanvas = document.createElement('canvas');
+tempCanvas.width = sampleSize;
+tempCanvas.height = sampleSize;
+const tempCtx = tempCanvas.getContext('2d');
 
-    document.getElementById('fxOthers').addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const select = e.target;
-        const options = Array.from(select.options);
-        const selectedIndex = select.selectedIndex;
-        const direction = e.deltaY > 0 ? 1 : -1;
-        let newIndex = selectedIndex + direction;
+const sourceX = x - sampleSize / 2;
+const sourceY = y - sampleSize / 2;
 
-        if (newIndex >= 0 && newIndex < options.length) {
-            options[newIndex].selected = true;
-            effects = Array.from(select.selectedOptions).map(option => option.value);
-            console.log('Selected effects:', effects);
-            Array.from(document.getElementById('fx-list').children).forEach(li => {
-                li.classList.toggle('selected', effects.includes(li.dataset.value));
-            });
-            select.dispatchEvent(new Event('change'));
-        }
-    });
+tempCtx.drawImage(canvas, sourceX, sourceY, sampleSize, sampleSize, 0, 0, sampleSize, sampleSize);
+sprite.src = tempCanvas.toDataURL();
+isCloneSampleTaker = false;
+isCloning = true;
+spriteX = x - (sprite.width * scale) / 2;
+spriteY = y - (sprite.height * scale) / 2;
+}
 
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        trailCanvas.width = canvas.width;
-        trailCanvas.height = canvas.height;
-        spriteX = (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2;
-        spriteY = (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2;
-    });
+document.getElementById('fx-list').addEventListener('click', (e) => {
+if (e.target.tagName === 'LI') {
+changeEffect(e.target);
+}
+});
+
+document.getElementById('fxOthers').addEventListener('wheel', (e) => {
+e.preventDefault();
+const select = e.target;
+const options = Array.from(select.options);
+const selectedIndex = select.selectedIndex;
+const direction = e.deltaY > 0 ? 1 : -1;
+let newIndex = selectedIndex + direction;
+if (newIndex >= 0 && newIndex < options.length) {
+options[newIndex].selected = true;
+effects = Array.from(select.selectedOptions).map(option => option.value);
+isCloneSampleTaker = effects.includes('clone');
+console.log('Selected effects:', effects);
+Array.from(document.getElementById('fx-list').children).forEach(li => {
+li.classList.toggle('selected', effects.includes(li.dataset.value));
+});
+select.dispatchEvent(new Event('change'));
+}
+});
+
+window.addEventListener('resize', () => {
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+trailCanvas.width = canvas.width;
+trailCanvas.height = canvas.height;
+spriteX = (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2;
+spriteY = (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2;
+});
+
+window.onload = animate;
 </script>
 </body>
 </html>
