@@ -91,6 +91,12 @@ border-radius: 4px;
 transition: transform 0.3s ease, box-shadow 0.3s ease;
 touch-action: manipulation;
 }
+#find-sprites-btn {
+font-size: 12.48px;
+}
+#load-bg-btn {
+font-size: 11px;
+}
 select {
 appearance: none;
 -webkit-appearance: none;
@@ -220,42 +226,43 @@ z-index: 1000;
 <p><a href="https://forevermidi.com/" target="_blank">forevermidi.com</a></p>
 <button onclick="document.getElementById('sprite-upload').click()">Load Sprite</button>
 <input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
-<button onclick="document.getElementById('bg-upload').click()">Load Background</button>
+<button id="load-bg-btn" onclick="document.getElementById('bg-upload').click()">Load Background</button>
 <input type="file" id="bg-upload" accept="image/*" style="display: none;" onchange="loadBackground(event)">
 <button onclick="handleSnapshot()">Snapshot</button>
 <button onclick="resetCanvas()">Reset</button>
+<button id="find-sprites-btn" onclick="window.open('https://pixabay.com/images/search/transparent%20background%20sprites/', '_blank')">Find Sprites</button>
 <button id="fx-button" onclick="toggleFxList()">FX</button>
 <ul id="fx-list">
-<li data-value="none" class="selected">No Effect</li>
+<li data-value="none" class="selected">No FX</li>
 <li data-value="grayscale">Grayscale</li>
 <li data-value="invert">Invert</li>
 <li data-value="sepia">Sepia</li>
-<li data-value="pixelate">Pixelate</li>
-<li data-value="blur">Blur</li>
-<li data-value="hue">Hue Rotate</li>
-<li data-value="randomHue">Random Hue</li>
 <li data-value="contrast">Contrast</li>
 <li data-value="brightness">Brightness</li>
+<li data-value="hue">Hue Rotate</li>
+<li data-value="randomHue">Random Hue</li>
 <li data-value="posterize">Posterize</li>
-<li data-value="eraser">Eraser</li>
-<li data-value="distort">Distort</li>
+<li data-value="pixelate">Pixelate</li>
+<li data-value="blur">Blur</li>
+<li data-value="chromatic">Chromatic</li>
+<li data-value="neon">Neon</li>
+<li data-value="static">Static</li>
+<li data-value="haunt">Haunt</li>
+<li data-value="ghost">Ghost</li>
 <li data-value="flicker">Flicker</li>
 <li data-value="420">420</li>
-<li data-value="vortex">Vortex</li>
 <li data-value="ripple">Ripple</li>
-<li data-value="neon">Neon</li>
-<li data-value="fractal">Fractal</li>
-<li data-value="chromatic">Chromatic</li>
-<li data-value="dreamscape">Dreamscape</li>
+<li data-value="distort">Distort</li>
 <li data-value="warp">Warp</li>
-<li data-value="static">Static</li>
-<li data-value="ghost">Ghost</li>
+<li data-value="vortex">Vortex</li>
+<li data-value="dreamscape">Dreamscape</li>
 <li data-value="melt">Melt</li>
-<li data-value="pulse">Pulse</li>
 <li data-value="shatter">Shatter</li>
+<li data-value="fractal">Fractal</li>
+<li data-value="pulse">Pulse</li>
 <li data-value="flip">Flip</li>
-<li data-value="haunt">Haunt</li>
 <li data-value="rotate90">Rotate 90</li>
+<li data-value="eraser">Eraser</li>
 </ul>
 <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
 <label for="scale">Scale: <span id="scale-value">1</span></label>
