@@ -231,8 +231,8 @@ z-index: 1000;
 <input type="file" id="bg-upload" accept="image/*" style="display: none;" onchange="loadBackground(event)">
 <button id="find-sprites-btn" onclick="window.open('https://pixabay.com/images/search/transparent%20background%20sprites/', '_blank')">Find Sprites</button>
 <button onclick="handleSnapshot()">Snapshot</button>
-<button id="reset-btn" onclick="resetCanvas()">Reset</button>
 <button id="fx-button" onclick="toggleFxList()">FX</button>
+<button id="reset-btn" onclick="resetCanvas()">Reset</button>
 <ul id="fx-list">
 <li data-value="none" class="selected">No FX</li>
 <li data-value="grayscale">Grayscale</li>
@@ -252,6 +252,7 @@ z-index: 1000;
 <li data-value="ghost">Ghost</li>
 <li data-value="flicker">Flicker</li>
 <li data-value="420">420</li>
+<licon: true,
 <li data-value="ripple">Ripple</li>
 <li data-value="distort">Distort</li>
 <li data-value="warp">Warp</li>
@@ -302,6 +303,8 @@ const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spi
 let currentBackgroundImage = new Image();
 currentBackgroundImage.src = defaultBackground;
 let trailAlways = false;
+let lastTime = performance.now();
+
 sprite.onload = () => {
 const ratio = 218.4 / Math.max(sprite.width, sprite.height);
 sprite.width = 218.4;
@@ -312,23 +315,28 @@ if (!isDraggingSprite) {
 resetVelocity();
 }
 };
+
 sprite.onerror = () => {
 console.error('Failed to load sprite. Using fallback.');
 sprite.src = 'https://via.placeholder.com/218.4x218.4.png?text=Sprite';
 };
+
 currentBackgroundImage.onload = () => {
 canvas.style.background = `url(${currentBackgroundImage.src}) no-repeat center`;
 canvas.style.backgroundSize = 'cover';
 };
+
 currentBackgroundImage.onerror = () => {
 console.error('Failed to load default background');
 canvas.style.background = 'black';
 };
+
 function resetVelocity() {
 const angle = Math.random() * 2 * Math.PI;
 dx = Math.cos(angle) * speed;
 dy = Math.sin(angle) * speed;
 }
+
 function loadSprite(event) {
 const file = event.target.files[0];
 if (file) {
@@ -337,6 +345,7 @@ sprite.src = URL.createObjectURL(file);
 alert('Please select an image file for the sprite.');
 }
 }
+
 function loadBackground(event) {
 const file = event.target.files[0];
 if (file) {
@@ -354,6 +363,7 @@ alert('Failed to load background image. Please try another file.');
 alert('Please select an image file for the background.');
 }
 }
+
 function handleSnapshot() {
 const snapshotMessage = document.getElementById('snapshot-message');
 snapshotMessage.style.display = 'block';
@@ -362,6 +372,7 @@ snapshotMessage.style.display = 'none';
 }, 3000);
 takeCanvasSnapshot();
 }
+
 function takeCanvasSnapshot() {
 const tempCanvas = document.createElement('canvas');
 tempCanvas.width = window.innerWidth;
@@ -376,6 +387,7 @@ a.href = dataURL;
 a.download = 'trail3r_snapshot.png';
 a.click();
 }
+
 function resetCanvas() {
 if (window.animationFrameId) {
 cancelAnimationFrame(window.animationFrameId);
@@ -407,6 +419,7 @@ controlPanel.style.right = 'auto';
 controlPanel.style.bottom = 'auto';
 animate();
 }
+
 function toggleFxList() {
 const fxList = document.getElementById('fx-list');
 const fxButton = document.getElementById('fx-button');
@@ -418,6 +431,7 @@ fxList.style.display = 'flex';
 fxButton.textContent = 'CLOSE FX';
 }
 }
+
 function changeEffect(element) {
 const value = element.dataset.value;
 if (effects.includes(value)) {
@@ -441,13 +455,16 @@ document.querySelector('#fx-list li[data-value="none"]').classList.remove('selec
 }
 }
 }
+
 function changeScale(value) {
 scale = value;
 document.getElementById('scale-value').textContent = value;
 }
+
 function toggleTrailAlways(checked) {
 trailAlways = checked;
 }
+
 function applyEffects(ctx, img, x, y, width, height) {
 ctx.save();
 ctx.translate(x, y);
@@ -617,45 +634,68 @@ ctx.restore();
 ctx.restore();
 ctx.globalCompositeOperation = 'source-over';
 }
+
 function isMouseOverSprite(x, y) {
 const scaledWidth = sprite.width * scale;
 const scaledHeight = sprite.height * scale;
 return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= spriteY + scaledHeight;
 }
-function animate() {
+
+function animate(currentTime) {
+const deltaTime = (currentTime - lastTime) / 1000; // Time since last frame in seconds
+lastTime = currentTime;
+
 ctx.clearRect(0, 0, canvas.width, canvas.height);
+
 if (!isDraggingSprite) {
-const nextX = spriteX + dx;
-const nextY = spriteY + dy;
 const scaledWidth = sprite.width * scale;
 const scaledHeight = sprite.height * scale;
-if (nextX + scaledWidth > canvas.width || nextX < 0) {
+let nextX = spriteX + dx * deltaTime * 60; // Normalize speed across frame rates
+let nextY = spriteY + dy * deltaTime * 60;
+
+// Boundary checks with clamping to prevent overshooting
+if (nextX + scaledWidth > canvas.width) {
+nextX = canvas.width - scaledWidth;
+dx = -dx; // Reflect velocity
+} else if (nextX < 0) {
+nextX = 0;
 dx = -dx;
 }
-if (nextY + scaledHeight > canvas.height || nextY < 0) {
+if (nextY + scaledHeight > canvas.height) {
+nextY = canvas.height - scaledHeight;
+dy = -dy;
+} else if (nextY < 0) {
+nextY = 0;
 dy = -dy;
 }
-spriteX += dx;
-spriteY += dy;
+
+spriteX = nextX;
+spriteY = nextY;
 }
+
 if (trailAlways || isDraggingSprite) {
 trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
 applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
 }
+
 ctx.drawImage(trailCanvas, 0, 0);
 applyEffects(ctx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+
 if (effects.includes('hue')) {
 hueValue = (hueValue + 2) % 360;
 }
 if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter', 'haunt'].some(e => effects.includes(e))) {
-effectTime += 0.1;
+effectTime += 0.1 * deltaTime * 60; // Normalize effect timing
 }
+
 window.animationFrameId = requestAnimationFrame(animate);
 }
+
 function isOverControlPanel(x, y) {
 const rect = controlPanel.getBoundingClientRect();
 return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 }
+
 controlPanel.addEventListener('mousedown', (e) => {
 const target = e.target;
 if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
@@ -665,7 +705,9 @@ panelOffsetX = e.clientX - controlPanel.getBoundingClientRect().left;
 panelOffsetY = e.clientY - controlPanel.getBoundingClientRect().top;
 }
 });
+
 controlPanel.addEventListener('touchstart', (e) => {
+e.preventDefault(); // Prevent scrolling
 const target = e.target;
 if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
 isDraggingPanel = true;
@@ -675,6 +717,7 @@ panelOffsetX = touch.clientX - controlPanel.getBoundingClientRect().left;
 panelOffsetY = touch.clientY - controlPanel.getBoundingClientRect().top;
 }
 });
+
 document.addEventListener('mousemove', (e) => {
 if (isDraggingPanel) {
 e.preventDefault();
@@ -689,10 +732,11 @@ e.preventDefault();
 const rect = canvas.getBoundingClientRect();
 const mouseX = e.clientX - rect.left;
 const mouseY = e.clientY - rect.top;
-spriteX = mouseX - (sprite.width * scale) / 2;
-spriteY = mouseY - (sprite.height * scale) / 2;
+spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
+spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
 }
 });
+
 document.addEventListener('touchmove', (e) => {
 if (isDraggingPanel) {
 e.preventDefault();
@@ -709,10 +753,11 @@ const rect = canvas.getBoundingClientRect();
 const touch = e.touches[0];
 const touchX = touch.clientX - rect.left;
 const touchY = touch.clientY - rect.top;
-spriteX = touchX - (sprite.width * scale) / 2;
-spriteY = touchY - (sprite.height * scale) / 2;
+spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
+spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
 }
 });
+
 document.addEventListener('mouseup', () => {
 if (isDraggingPanel) {
 isDraggingPanel = false;
@@ -723,6 +768,7 @@ isDraggingSprite = false;
 resetVelocity();
 }
 });
+
 document.addEventListener('touchend', () => {
 if (isDraggingPanel) {
 isDraggingPanel = false;
@@ -733,6 +779,7 @@ isDraggingSprite = false;
 resetVelocity();
 }
 });
+
 document.addEventListener('touchcancel', () => {
 if (isDraggingPanel) {
 isDraggingPanel = false;
@@ -743,23 +790,25 @@ isDraggingSprite = false;
 resetVelocity();
 }
 });
+
 canvas.addEventListener('mousedown', (e) => {
 e.preventDefault();
 const rect = canvas.getBoundingClientRect();
 const mouseX = e.clientX - rect.left;
 const mouseY = e.clientY - rect.top;
 if (!isOverControlPanel(e.clientX, e.clientY)) {
-isDraggingSprite = isMouseOverSprite(mouseX, mouseY);
-if (isDraggingSprite) {
+if (isMouseOverSprite(mouseX, mouseY)) {
+isDraggingSprite = true;
 dx = 0;
 dy = 0;
 } else {
-spriteX = mouseX - (sprite.width * scale) / 2;
-spriteY = mouseY - (sprite.height * scale) / 2;
+spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
+spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
 isDraggingSprite = true;
 }
 }
 });
+
 canvas.addEventListener('touchstart', (e) => {
 e.preventDefault();
 const rect = canvas.getBoundingClientRect();
@@ -767,36 +816,39 @@ const touch = e.touches[0];
 const touchX = touch.clientX - rect.left;
 const touchY = touch.clientY - rect.top;
 if (!isOverControlPanel(touch.clientX, touch.clientY)) {
-isDraggingSprite = isMouseOverSprite(touchX, touchY);
-if (isDraggingSprite) {
+if (isMouseOverSprite(touchX, touchY)) {
+isDraggingSprite = true;
 dx = 0;
 dy = 0;
 } else {
-spriteX = touchX - (sprite.width * scale) / 2;
-spriteY = touchY - (sprite.height * scale) / 2;
+spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
+spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
 isDraggingSprite = true;
 }
 }
 });
+
 document.getElementById('fx-list').addEventListener('click', (e) => {
 if (e.target.tagName === 'LI') {
 changeEffect(e.target);
 }
 });
+
 window.addEventListener('resize', () => {
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 trailCanvas.width = canvas.width;
 trailCanvas.height = canvas.height;
-spriteX = (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2;
-spriteY = (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2;
+spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2));
+spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
 });
+
 window.onload = () => {
 panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
 panelY = window.innerHeight - controlPanel.offsetHeight - 15;
 controlPanel.style.left = `${panelX}px`;
 controlPanel.style.top = `${panelY}px`;
-animate();
+animate(performance.now());
 };
 </script>
 </body>
