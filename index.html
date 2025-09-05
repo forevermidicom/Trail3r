@@ -72,6 +72,11 @@ text-align: center;
 text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
 width: 100%;
 }
+#control-panel a {
+color: #0f0;
+text-decoration: none;
+cursor: pointer;
+}
 button, input[type="file"], select, input[type="checkbox"] {
 background: #111;
 color: #0f0;
@@ -114,7 +119,7 @@ width: calc(50% - 1.5px);
 accent-color: #0f0;
 cursor: pointer;
 touch-action: manipulation;
-margin-top: 10px; /* Added margin to separate from FX buttons */
+margin-top: 10px;
 }
 input[type="range"]::-webkit-slider-runnable-track {
 background: #111;
@@ -129,7 +134,7 @@ height: 16px;
 width: 16px;
 border-radius: 50%;
 margin-top: -4px;
-box-shadow: 0 0 8px #0f0, 0 0 12px rgba(0, 255, 0, 0.6); /* Fluorescent glow */
+box-shadow: 0 0 8px #0f0, 0 0 12px rgba(0, 255, 0, 0.6);
 }
 input[type="range"]::-moz-range-track {
 background: #111;
@@ -143,7 +148,7 @@ border: 1px solid #0f0;
 height: 16px;
 width: 16px;
 border-radius: 50%;
-box-shadow: 0 0 8px #0f0, 0 0 12px rgba(0, 255, 0, 0.6); /* Fluorescent glow */
+box-shadow: 0 0 8px #0f0, 0 0 12px rgba(0, 255, 0, 0.6);
 }
 button:active, select:active, input:active {
 transform: translateY(0);
@@ -161,7 +166,7 @@ max-height: none;
 list-style: none;
 padding: 0;
 margin: 0;
-display: flex;
+display: none;
 flex-direction: column;
 gap: 3px;
 }
@@ -184,6 +189,9 @@ box-shadow: none;
 background: #0f0;
 color: #000;
 }
+#fx-button {
+width: 100%;
+}
 #snapshot-message {
 position: absolute;
 top: 50%;
@@ -203,67 +211,20 @@ text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
 display: none;
 z-index: 1000;
 }
-@media (max-width: 768px) {
-#fx-list {
-display: none;
-}
-select#fxOthers {
-display: block;
-}
-}
-@media (min-width: 769px) {
-select#fxOthers {
-display: none;
-}
-#fx-list {
-display: flex;
-}
-}
 </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 <div id="control-panel">
 <h1>Trail³r</h1>
-<p>forevermidi.com</p>
+<p><a href="https://forevermidi.com/" target="_blank">forevermidi.com</a></p>
 <button onclick="document.getElementById('sprite-upload').click()">Load Sprite</button>
 <input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
 <button onclick="document.getElementById('bg-upload').click()">Load Background</button>
 <input type="file" id="bg-upload" accept="image/*" style="display: none;" onchange="loadBackground(event)">
-<button onclick="snapshot()">Snapshot</button>
+<button onclick="handleSnapshot()">Snapshot</button>
 <button onclick="resetCanvas()">Reset</button>
-<select id="fxOthers" multiple onchange="changeEffect(this)">
-<option value="none">No Effect</option>
-<option value="grayscale">Grayscale</option>
-<option value="invert">Invert</option>
-<option value="sepia">Sepia</option>
-<option value="pixelate">Pixelate</option>
-<option value="blur">Blur</option>
-<option value="hue">Hue Rotate</option>
-<option value="randomHue">Random Hue</option>
-<option value="contrast">Contrast</option>
-<option value="brightness">Brightness</option>
-<option value="posterize">Posterize</option>
-<option value="eraser">Eraser</option>
-<option value="distort">Distort</option>
-<option value="flicker">Flicker</option>
-<option value="420">420</option>
-<option value="vortex">Vortex</option>
-<option value="ripple">Ripple</option>
-<option value="neon">Neon</option>
-<option value="fractal">Fractal</option>
-<option value="chromatic">Chromatic</option>
-<option value="dreamscape">Dreamscape</option>
-<option value="warp">Warp</option>
-<option value="static">Static</option>
-<option value="ghost">Ghost</option>
-<option value="melt">Melt</option>
-<option value="pulse">Pulse</option>
-<option value="shatter">Shatter</option>
-<option value="flip">Flip</option>
-<option value="haunt">Haunt</option>
-<option value="rotate90">Rotate 90</option>
-</select>
+<button id="fx-button" onclick="toggleFxList()">FX</button>
 <ul id="fx-list">
 <li data-value="none" class="selected">No Effect</li>
 <li data-value="grayscale">Grayscale</li>
@@ -327,7 +288,6 @@ const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spi
 let currentBackgroundImage = new Image();
 currentBackgroundImage.src = defaultBackground;
 let trailAlways = false;
-let isSnapshotActive = false;
 
 sprite.onload = () => {
 const ratio = 218.4 / Math.max(sprite.width, sprite.height);
@@ -393,15 +353,40 @@ alert('Please select an image file for the background.');
 }
 }
 
-function snapshot() {
+function handleSnapshot() {
 console.log('Snapshot button clicked');
-isSnapshotActive = true;
 const snapshotMessage = document.getElementById('snapshot-message');
 snapshotMessage.style.display = 'block';
+
+// Hide the message after 3 seconds
 setTimeout(() => {
 snapshotMessage.style.display = 'none';
-isSnapshotActive = false;
-}, 4000);
+}, 3000);
+
+// Create the snapshot and download it
+takeCanvasSnapshot();
+}
+
+function takeCanvasSnapshot() {
+const tempCanvas = document.createElement('canvas');
+tempCanvas.width = window.innerWidth;
+tempCanvas.height = window.innerHeight;
+const tempCtx = tempCanvas.getContext('2d');
+
+// Draw background image
+tempCtx.drawImage(currentBackgroundImage, 0, 0, tempCanvas.width, tempCanvas.height);
+
+// Draw the trail layer
+tempCtx.drawImage(trailCanvas, 0, 0);
+
+// Draw the sprite on top of the trail and background
+applyEffects(tempCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+
+const dataURL = tempCanvas.toDataURL('image/png');
+const a = document.createElement('a');
+a.href = dataURL;
+a.download = 'trail3r_snapshot.png';
+a.click();
 }
 
 function resetCanvas() {
@@ -420,23 +405,29 @@ spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
 spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
 resetVelocity();
 effects = ['none'];
-const select = document.getElementById('fxOthers');
-Array.from(select.options).forEach(option => option.selected = option.value === 'none');
 const fxList = document.getElementById('fx-list');
 Array.from(fxList.children).forEach(li => {
 li.classList.toggle('selected', li.dataset.value === 'none');
 });
 document.getElementById('trail-always').checked = false;
 trailAlways = false;
-isSnapshotActive = false;
 document.getElementById('snapshot-message').style.display = 'none';
 animate();
 }
 
-function changeEffect(element) {
-if (element.tagName === 'SELECT') {
-effects = Array.from(element.selectedOptions).map(option => option.value);
+function toggleFxList() {
+const fxList = document.getElementById('fx-list');
+const fxButton = document.getElementById('fx-button');
+if (fxList.style.display === 'flex') {
+fxList.style.display = 'none';
+fxButton.textContent = 'FX';
 } else {
+fxList.style.display = 'flex';
+fxButton.textContent = 'CLOSE FX';
+}
+}
+
+function changeEffect(element) {
 const value = element.dataset.value;
 if (effects.includes(value)) {
 effects = effects.filter(effect => effect !== value);
@@ -458,12 +449,7 @@ element.classList.add('selected');
 document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
 }
 }
-}
 console.log('Selected effects:', effects);
-const select = document.getElementById('fxOthers');
-Array.from(select.options).forEach(option => {
-option.selected = effects.includes(option.value);
-});
 }
 
 function changeScale(value) {
@@ -653,11 +639,6 @@ return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= sprite
 }
 
 function animate() {
-if (isSnapshotActive) {
-    window.animationFrameId = requestAnimationFrame(animate);
-    return;
-}
-
 ctx.clearRect(0, 0, canvas.width, canvas.height);
 if (!isDragging) {
 spriteX += dx;
@@ -698,7 +679,12 @@ const mouseY = e.clientY - rect.top;
 
 if (!isOverControlPanel(e.clientX, e.clientY)) {
 isDragging = isMouseOverSprite(mouseX, mouseY);
-if (!isDragging) {
+if (isDragging) {
+// If dragging, prevent random movement
+dx = 0;
+dy = 0;
+} else {
+// If not dragging, set the sprite's position to the mouse click
 spriteX = mouseX - (sprite.width * scale) / 2;
 spriteY = mouseY - (sprite.height * scale) / 2;
 isDragging = true;
@@ -739,7 +725,12 @@ const touchX = touch.clientX - rect.left;
 const touchY = touch.clientY - rect.top;
 if (!isOverControlPanel(touch.clientX, touch.clientY)) {
 isDragging = isMouseOverSprite(touchX, touchY);
-if (!isDragging) {
+if (isDragging) {
+// If dragging, prevent random movement
+dx = 0;
+dy = 0;
+} else {
+// If not dragging, set the sprite's position to the touch location
 spriteX = touchX - (sprite.width * scale) / 2;
 spriteY = touchY - (sprite.height * scale) / 2;
 isDragging = true;
@@ -777,24 +768,6 @@ resetVelocity();
 document.getElementById('fx-list').addEventListener('click', (e) => {
 if (e.target.tagName === 'LI') {
 changeEffect(e.target);
-}
-});
-
-document.getElementById('fxOthers').addEventListener('wheel', (e) => {
-e.preventDefault();
-const select = e.target;
-const options = Array.from(select.options);
-const selectedIndex = select.selectedIndex;
-const direction = e.deltaY > 0 ? 1 : -1;
-let newIndex = selectedIndex + direction;
-if (newIndex >= 0 && newIndex < options.length) {
-options[newIndex].selected = true;
-effects = Array.from(select.selectedOptions).map(option => option.value);
-console.log('Selected effects:', effects);
-Array.from(document.getElementById('fx-list').children).forEach(li => {
-li.classList.toggle('selected', effects.includes(li.dataset.value));
-});
-select.dispatchEvent(new Event('change'));
 }
 });
 
