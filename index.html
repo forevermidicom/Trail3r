@@ -91,10 +91,7 @@ border-radius: 4px;
 transition: transform 0.3s ease, box-shadow 0.3s ease;
 touch-action: manipulation;
 }
-#find-sprites-btn {
-font-size: 12.48px;
-}
-#load-bg-btn {
+#load-bg-btn, #fx-button, #find-sprites-btn, #reset-btn {
 font-size: 11px;
 }
 select {
@@ -196,7 +193,7 @@ background: #0f0;
 color: #000;
 }
 #fx-button {
-width: 100%;
+width: calc(50% - 1.5px);
 }
 #snapshot-message {
 position: absolute;
@@ -228,9 +225,9 @@ z-index: 1000;
 <input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
 <button id="load-bg-btn" onclick="document.getElementById('bg-upload').click()">Load Background</button>
 <input type="file" id="bg-upload" accept="image/*" style="display: none;" onchange="loadBackground(event)">
-<button onclick="handleSnapshot()">Snapshot</button>
-<button onclick="resetCanvas()">Reset</button>
 <button id="find-sprites-btn" onclick="window.open('https://pixabay.com/images/search/transparent%20background%20sprites/', '_blank')">Find Sprites</button>
+<button onclick="handleSnapshot()">Snapshot</button>
+<button id="reset-btn" onclick="resetCanvas()">Reset</button>
 <button id="fx-button" onclick="toggleFxList()">FX</button>
 <ul id="fx-list">
 <li data-value="none" class="selected">No FX</li>
