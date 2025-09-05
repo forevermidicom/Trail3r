@@ -47,6 +47,10 @@ backdrop-filter: blur(2px);
 max-height: 30vh;
 overflow-y: auto;
 pointer-events: auto;
+cursor: grab;
+}
+#control-panel.dragging {
+cursor: grabbing;
 }
 #control-panel::-webkit-scrollbar {
 width: 8px;
@@ -219,7 +223,7 @@ z-index: 1000;
 <body>
 <canvas id="canvas"></canvas>
 <div id="control-panel">
-<h1>Trail³r</h1>
+<h1 id="control-panel-heading">Trail³r</h1>
 <p><a href="https://forevermidi.com/" target="_blank">forevermidi.com</a></p>
 <button onclick="document.getElementById('sprite-upload').click()">Load Sprite</button>
 <input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
@@ -273,6 +277,12 @@ const canvas = document.getElementById('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
+const controlPanel = document.getElementById('control-panel');
+let panelX = controlPanel.offsetLeft;
+let panelY = controlPanel.offsetTop;
+let isDraggingPanel = false;
+let panelOffsetX = 0;
+let panelOffsetY = 0;
 let sprite = new Image();
 const defaultSprite = 'https://freepngimg.com/thumb/emoji/104116-face-emoji-3d-download-free-image.png';
 sprite.src = defaultSprite;
@@ -281,7 +291,7 @@ let dx = 0, dy = 0;
 const speed = 1.5;
 let scale = 1;
 let effects = ['none'];
-let isDragging = false;
+let isDraggingSprite = false;
 let trailCanvas = document.createElement('canvas');
 trailCanvas.width = canvas.width;
 trailCanvas.height = canvas.height;
@@ -292,14 +302,13 @@ const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spi
 let currentBackgroundImage = new Image();
 currentBackgroundImage.src = defaultBackground;
 let trailAlways = false;
-
 sprite.onload = () => {
 const ratio = 218.4 / Math.max(sprite.width, sprite.height);
 sprite.width = 218.4;
 sprite.height *= ratio;
 spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
 spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-if (!isDragging) {
+if (!isDraggingSprite) {
 resetVelocity();
 }
 };
@@ -307,92 +316,66 @@ sprite.onerror = () => {
 console.error('Failed to load sprite. Using fallback.');
 sprite.src = 'https://via.placeholder.com/218.4x218.4.png?text=Sprite';
 };
-
 currentBackgroundImage.onload = () => {
 canvas.style.background = `url(${currentBackgroundImage.src}) no-repeat center`;
 canvas.style.backgroundSize = 'cover';
-console.log('Default background loaded');
 };
 currentBackgroundImage.onerror = () => {
 console.error('Failed to load default background');
 canvas.style.background = 'black';
 };
-
 function resetVelocity() {
 const angle = Math.random() * 2 * Math.PI;
 dx = Math.cos(angle) * speed;
 dy = Math.sin(angle) * speed;
 }
-
 function loadSprite(event) {
 const file = event.target.files[0];
 if (file) {
-console.log('Loading sprite:', file.name);
 sprite.src = URL.createObjectURL(file);
 } else {
-console.error('No sprite file selected');
 alert('Please select an image file for the sprite.');
 }
 }
-
 function loadBackground(event) {
 const file = event.target.files[0];
 if (file) {
-console.log('Loading background:', file.name);
 const bg = new Image();
 bg.src = URL.createObjectURL(file);
 bg.onload = () => {
 currentBackgroundImage = bg;
 canvas.style.background = `url(${bg.src}) no-repeat center`;
 canvas.style.backgroundSize = 'cover';
-console.log('Background loaded successfully');
 };
 bg.onerror = () => {
-console.error('Failed to load background image');
 alert('Failed to load background image. Please try another file.');
 };
 } else {
-console.error('No background file selected');
 alert('Please select an image file for the background.');
 }
 }
-
 function handleSnapshot() {
-console.log('Snapshot button clicked');
 const snapshotMessage = document.getElementById('snapshot-message');
 snapshotMessage.style.display = 'block';
-
-// Hide the message after 3 seconds
 setTimeout(() => {
 snapshotMessage.style.display = 'none';
 }, 3000);
-
-// Create the snapshot and download it
 takeCanvasSnapshot();
 }
-
 function takeCanvasSnapshot() {
 const tempCanvas = document.createElement('canvas');
 tempCanvas.width = window.innerWidth;
 tempCanvas.height = window.innerHeight;
 const tempCtx = tempCanvas.getContext('2d');
-
-// Draw background image
 tempCtx.drawImage(currentBackgroundImage, 0, 0, tempCanvas.width, tempCanvas.height);
-
-// Draw the trail layer
 tempCtx.drawImage(trailCanvas, 0, 0);
-
-// Draw the sprite on top of the trail and background
 applyEffects(tempCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-
 const dataURL = tempCanvas.toDataURL('image/png');
 const a = document.createElement('a');
 a.href = dataURL;
 a.download = 'trail3r_snapshot.png';
 a.click();
 }
-
 function resetCanvas() {
 if (window.animationFrameId) {
 cancelAnimationFrame(window.animationFrameId);
@@ -416,9 +399,14 @@ li.classList.toggle('selected', li.dataset.value === 'none');
 document.getElementById('trail-always').checked = false;
 trailAlways = false;
 document.getElementById('snapshot-message').style.display = 'none';
+panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
+panelY = window.innerHeight - controlPanel.offsetHeight - 15;
+controlPanel.style.left = `${panelX}px`;
+controlPanel.style.top = `${panelY}px`;
+controlPanel.style.right = 'auto';
+controlPanel.style.bottom = 'auto';
 animate();
 }
-
 function toggleFxList() {
 const fxList = document.getElementById('fx-list');
 const fxButton = document.getElementById('fx-button');
@@ -430,7 +418,6 @@ fxList.style.display = 'flex';
 fxButton.textContent = 'CLOSE FX';
 }
 }
-
 function changeEffect(element) {
 const value = element.dataset.value;
 if (effects.includes(value)) {
@@ -453,22 +440,17 @@ element.classList.add('selected');
 document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
 }
 }
-console.log('Selected effects:', effects);
 }
-
 function changeScale(value) {
 scale = value;
 document.getElementById('scale-value').textContent = value;
 }
-
 function toggleTrailAlways(checked) {
 trailAlways = checked;
 }
-
 function applyEffects(ctx, img, x, y, width, height) {
 ctx.save();
 ctx.translate(x, y);
-
 effects.forEach(effect => {
 ctx.save();
 if (effect === 'distort') {
@@ -635,26 +617,28 @@ ctx.restore();
 ctx.restore();
 ctx.globalCompositeOperation = 'source-over';
 }
-
 function isMouseOverSprite(x, y) {
 const scaledWidth = sprite.width * scale;
 const scaledHeight = sprite.height * scale;
 return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= spriteY + scaledHeight;
 }
-
 function animate() {
 ctx.clearRect(0, 0, canvas.width, canvas.height);
-if (!isDragging) {
-spriteX += dx;
-spriteY += dy;
-if (spriteX < 0 || spriteX > canvas.width - sprite.width * scale) {
+if (!isDraggingSprite) {
+const nextX = spriteX + dx;
+const nextY = spriteY + dy;
+const scaledWidth = sprite.width * scale;
+const scaledHeight = sprite.height * scale;
+if (nextX + scaledWidth > canvas.width || nextX < 0) {
 dx = -dx;
 }
-if (spriteY < 0 || spriteY > canvas.height - sprite.height * scale) {
+if (nextY + scaledHeight > canvas.height || nextY < 0) {
 dy = -dy;
 }
+spriteX += dx;
+spriteY += dy;
 }
-if (trailAlways || isDragging) {
+if (trailAlways || isDraggingSprite) {
 trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
 applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
 }
@@ -668,59 +652,114 @@ effectTime += 0.1;
 }
 window.animationFrameId = requestAnimationFrame(animate);
 }
-
 function isOverControlPanel(x, y) {
-const panel = document.getElementById('control-panel');
-const rect = panel.getBoundingClientRect();
+const rect = controlPanel.getBoundingClientRect();
 return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 }
-
+controlPanel.addEventListener('mousedown', (e) => {
+const target = e.target;
+if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
+isDraggingPanel = true;
+controlPanel.classList.add('dragging');
+panelOffsetX = e.clientX - controlPanel.getBoundingClientRect().left;
+panelOffsetY = e.clientY - controlPanel.getBoundingClientRect().top;
+}
+});
+controlPanel.addEventListener('touchstart', (e) => {
+const target = e.target;
+if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
+isDraggingPanel = true;
+controlPanel.classList.add('dragging');
+const touch = e.touches[0];
+panelOffsetX = touch.clientX - controlPanel.getBoundingClientRect().left;
+panelOffsetY = touch.clientY - controlPanel.getBoundingClientRect().top;
+}
+});
+document.addEventListener('mousemove', (e) => {
+if (isDraggingPanel) {
+e.preventDefault();
+panelX = e.clientX - panelOffsetX;
+panelY = e.clientY - panelOffsetY;
+controlPanel.style.left = `${panelX}px`;
+controlPanel.style.top = `${panelY}px`;
+controlPanel.style.right = 'auto';
+controlPanel.style.bottom = 'auto';
+} else if (isDraggingSprite) {
+e.preventDefault();
+const rect = canvas.getBoundingClientRect();
+const mouseX = e.clientX - rect.left;
+const mouseY = e.clientY - rect.top;
+spriteX = mouseX - (sprite.width * scale) / 2;
+spriteY = mouseY - (sprite.height * scale) / 2;
+}
+});
+document.addEventListener('touchmove', (e) => {
+if (isDraggingPanel) {
+e.preventDefault();
+const touch = e.touches[0];
+panelX = touch.clientX - panelOffsetX;
+panelY = touch.clientY - panelOffsetY;
+controlPanel.style.left = `${panelX}px`;
+controlPanel.style.top = `${panelY}px`;
+controlPanel.style.right = 'auto';
+controlPanel.style.bottom = 'auto';
+} else if (isDraggingSprite) {
+e.preventDefault();
+const rect = canvas.getBoundingClientRect();
+const touch = e.touches[0];
+const touchX = touch.clientX - rect.left;
+const touchY = touch.clientY - rect.top;
+spriteX = touchX - (sprite.width * scale) / 2;
+spriteY = touchY - (sprite.height * scale) / 2;
+}
+});
+document.addEventListener('mouseup', () => {
+if (isDraggingPanel) {
+isDraggingPanel = false;
+controlPanel.classList.remove('dragging');
+}
+if (isDraggingSprite) {
+isDraggingSprite = false;
+resetVelocity();
+}
+});
+document.addEventListener('touchend', () => {
+if (isDraggingPanel) {
+isDraggingPanel = false;
+controlPanel.classList.remove('dragging');
+}
+if (isDraggingSprite) {
+isDraggingSprite = false;
+resetVelocity();
+}
+});
+document.addEventListener('touchcancel', () => {
+if (isDraggingPanel) {
+isDraggingPanel = false;
+controlPanel.classList.remove('dragging');
+}
+if (isDraggingSprite) {
+isDraggingSprite = false;
+resetVelocity();
+}
+});
 canvas.addEventListener('mousedown', (e) => {
 e.preventDefault();
 const rect = canvas.getBoundingClientRect();
 const mouseX = e.clientX - rect.left;
 const mouseY = e.clientY - rect.top;
-
 if (!isOverControlPanel(e.clientX, e.clientY)) {
-isDragging = isMouseOverSprite(mouseX, mouseY);
-if (isDragging) {
-// If dragging, prevent random movement
+isDraggingSprite = isMouseOverSprite(mouseX, mouseY);
+if (isDraggingSprite) {
 dx = 0;
 dy = 0;
 } else {
-// If not dragging, set the sprite's position to the mouse click
 spriteX = mouseX - (sprite.width * scale) / 2;
 spriteY = mouseY - (sprite.height * scale) / 2;
-isDragging = true;
+isDraggingSprite = true;
 }
 }
 });
-
-canvas.addEventListener('mousemove', (e) => {
-e.preventDefault();
-const rect = canvas.getBoundingClientRect();
-const mouseX = e.clientX - rect.left;
-const mouseY = e.clientY - rect.top;
-if (isDragging) {
-spriteX = mouseX - (sprite.width * scale) / 2;
-spriteY = mouseY - (sprite.height * scale) / 2;
-}
-});
-
-canvas.addEventListener('mouseup', (e) => {
-if (isDragging) {
-isDragging = false;
-resetVelocity();
-}
-});
-
-canvas.addEventListener('mouseout', () => {
-if (isDragging) {
-isDragging = false;
-resetVelocity();
-}
-});
-
 canvas.addEventListener('touchstart', (e) => {
 e.preventDefault();
 const rect = canvas.getBoundingClientRect();
@@ -728,53 +767,22 @@ const touch = e.touches[0];
 const touchX = touch.clientX - rect.left;
 const touchY = touch.clientY - rect.top;
 if (!isOverControlPanel(touch.clientX, touch.clientY)) {
-isDragging = isMouseOverSprite(touchX, touchY);
-if (isDragging) {
-// If dragging, prevent random movement
+isDraggingSprite = isMouseOverSprite(touchX, touchY);
+if (isDraggingSprite) {
 dx = 0;
 dy = 0;
 } else {
-// If not dragging, set the sprite's position to the touch location
 spriteX = touchX - (sprite.width * scale) / 2;
 spriteY = touchY - (sprite.height * scale) / 2;
-isDragging = true;
+isDraggingSprite = true;
 }
 }
 });
-
-canvas.addEventListener('touchmove', (e) => {
-e.preventDefault();
-const rect = canvas.getBoundingClientRect();
-const touch = e.touches[0];
-const touchX = touch.clientX - rect.left;
-const touchY = touch.clientY - rect.top;
-if (isDragging) {
-spriteX = touchX - (sprite.width * scale) / 2;
-spriteY = touchY - (sprite.height * scale) / 2;
-}
-});
-
-canvas.addEventListener('touchend', (e) => {
-e.preventDefault();
-if (isDragging) {
-isDragging = false;
-resetVelocity();
-}
-});
-
-canvas.addEventListener('touchcancel', () => {
-if (isDragging) {
-isDragging = false;
-resetVelocity();
-}
-});
-
 document.getElementById('fx-list').addEventListener('click', (e) => {
 if (e.target.tagName === 'LI') {
 changeEffect(e.target);
 }
 });
-
 window.addEventListener('resize', () => {
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -783,8 +791,13 @@ trailCanvas.height = canvas.height;
 spriteX = (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2;
 spriteY = (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2;
 });
-
-window.onload = animate;
+window.onload = () => {
+panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
+panelY = window.innerHeight - controlPanel.offsetHeight - 15;
+controlPanel.style.left = `${panelX}px`;
+controlPanel.style.top = `${panelY}px`;
+animate();
+};
 </script>
 </body>
 </html>
