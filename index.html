@@ -21,9 +21,7 @@
   }
   canvas {
     border: 1px solid #0f0;
-    background: url('https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png') no-repeat center;
-    background-size: cover;
-    background-position: center;
+    background: #000;
     width: 100vw;
     height: 100vh;
     touch-action: none;
@@ -80,6 +78,7 @@
     color: #0f0;
     text-decoration: none;
     cursor: pointer;
+    pointer-events: auto;
   }
   button, input[type="file"], select, input[type="checkbox"] {
     background: rgba(0, 0, 0, 0.8);
@@ -94,8 +93,9 @@
     border-radius: 4px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     touch-action: manipulation;
+    pointer-events: auto;
   }
-  #load-bg-btn, #fx-button, #find-sprites-btn, #reset-btn, #gravity-btn {
+  #load-bg-btn, #fx-button, #find-sprites-btn, #reset-btn {
     font-size: 11px;
   }
   select {
@@ -106,6 +106,7 @@
     background-size: 10px;
     max-height: 100px;
     overflow-y: auto;
+    pointer-events: auto;
   }
   select::-webkit-scrollbar {
     width: 8px;
@@ -127,6 +128,7 @@
     cursor: pointer;
     touch-action: manipulation;
     margin-top: 10px;
+    pointer-events: auto;
   }
   input[type="range"]::-webkit-slider-runnable-track {
     background: rgba(0, 0, 0, 0.8);
@@ -166,6 +168,7 @@
     text-align: center;
     text-shadow: 0 0 3px rgba(0, 255, 0, 0.3);
     width: calc(50% - 1.5px);
+    pointer-events: none;
   }
   #fx-list {
     width: 100%;
@@ -187,6 +190,7 @@
     border-radius: 4px;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    pointer-events: auto;
   }
   #fx-list li:active {
     transform: translateY(0);
@@ -233,7 +237,6 @@
   <button onclick="handleSnapshot()">Snapshot</button>
   <button id="fx-button" onclick="toggleFxList()">FX</button>
   <button id="reset-btn" onclick="resetCanvas()">Reset</button>
-  <button id="gravity-btn" onclick="toggleGravity()">Toggle Gravity</button>
   <ul id="fx-list">
     <li data-value="none" class="selected">No FX</li>
     <li data-value="grayscale">Grayscale</li>
@@ -277,17 +280,19 @@
   canvas.height = window.innerHeight;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const controlPanel = document.getElementById('control-panel');
-  let panelX = controlPanel.offsetLeft;
-  let panelY = controlPanel.offsetTop;
+  let panelX = window.innerWidth / 2 - 218.4 / 2;
+  let panelY = window.innerHeight - 15;
   let isDraggingPanel = false;
   let panelOffsetX = 0;
   let panelOffsetY = 0;
   let sprite = new Image();
-  sprite.crossOrigin = "anonymous"; // Handle cross-origin for sprite
-  const defaultSprite = 'https://freepngimg.com/thumb/emoji/104116-face-emoji-3d-download-free-image.png';
+  sprite.crossOrigin = "anonymous";
+  const defaultSprite = 'https://cdn.pixabay.com/photo/2025/03/16/13/59/ai-generated-9473976_960_720.png';
   sprite.src = defaultSprite;
-  let spriteX = canvas.width / 2, spriteY = canvas.height / 2;
-  let dx = 0, dy = 0;
+  let spriteX = canvas.width / 2;
+  let spriteY = canvas.height / 2;
+  let dx = 0;
+  let dy = 0;
   const speed = 1.5;
   let scale = 1;
   let effects = ['none'];
@@ -298,15 +303,9 @@
   const trailCtx = trailCanvas.getContext('2d', { willReadFrequently: true });
   let hueValue = 0;
   let effectTime = 0;
-  const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png';
-  let currentBackgroundImage = new Image();
-  currentBackgroundImage.crossOrigin = "anonymous"; // Handle cross-origin for background
-  currentBackgroundImage.src = defaultBackground;
+  let currentBackgroundImage = null;
   let trailAlways = false;
   let lastTime = performance.now();
-  let gravity = 0.5;
-  let bounceFriction = 0.8;
-  let isFalling = false;
 
   sprite.onload = () => {
     const ratio = 218.4 / Math.max(sprite.width, sprite.height);
@@ -324,31 +323,10 @@
     sprite.src = 'https://via.placeholder.com/218.4x218.4.png?text=Sprite';
   };
 
-  currentBackgroundImage.onload = () => {
-    canvas.style.background = `url(${currentBackgroundImage.src}) no-repeat center`;
-    canvas.style.backgroundSize = 'cover';
-  };
-
-  currentBackgroundImage.onerror = () => {
-    console.error('Failed to load default background');
-    canvas.style.background = 'black';
-  };
-
   function resetVelocity() {
     const angle = Math.random() * 2 * Math.PI;
     dx = Math.cos(angle) * speed;
     dy = Math.sin(angle) * speed;
-  }
-
-  function toggleGravity() {
-    isFalling = !isFalling;
-    if (isFalling) {
-      document.getElementById('gravity-btn').textContent = 'Disable Gravity';
-      dy = 0;
-    } else {
-      document.getElementById('gravity-btn').textContent = 'Toggle Gravity';
-      resetVelocity();
-    }
   }
 
   function loadSprite(event) {
@@ -394,30 +372,26 @@
     tempCanvas.height = window.innerHeight;
     const tempCtx = tempCanvas.getContext('2d');
 
-    // Draw background image with cover scaling
-    if (currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
+    // Draw background
+    tempCtx.fillStyle = 'black';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    if (currentBackgroundImage && currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
       const canvasAspect = tempCanvas.width / tempCanvas.height;
       const imgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
       let drawWidth, drawHeight, offsetX, offsetY;
 
       if (imgAspect > canvasAspect) {
-        // Image is wider than canvas: scale by height
         drawHeight = tempCanvas.height;
         drawWidth = drawHeight * imgAspect;
         offsetX = (tempCanvas.width - drawWidth) / 2;
         offsetY = 0;
       } else {
-        // Image is taller than canvas: scale by width
         drawWidth = tempCanvas.width;
         drawHeight = drawWidth / imgAspect;
         offsetX = 0;
         offsetY = (tempCanvas.height - drawHeight) / 2;
       }
       tempCtx.drawImage(currentBackgroundImage, offsetX, offsetY, drawWidth, drawHeight);
-    } else {
-      // Fallback: fill with black if background image fails
-      tempCtx.fillStyle = 'black';
-      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
     }
 
     // Draw trail canvas
@@ -445,31 +419,37 @@
     }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+    sprite = new Image();
+    sprite.crossOrigin = "anonymous";
     sprite.src = defaultSprite;
-    currentBackgroundImage.src = defaultBackground;
-    canvas.style.background = `url(${defaultBackground}) no-repeat center`;
-    canvas.style.backgroundSize = 'cover';
+    canvas.style.background = '#000';
+    currentBackgroundImage = null;
     sprite.width = 218.4;
     sprite.height = 218.4;
+    scale = 1;
+    document.getElementById('scale').value = 1;
+    document.getElementById('scale-value').textContent = '1';
     spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
     spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
     resetVelocity();
     effects = ['none'];
-    const fxList = document.getElementById('fx-list');
-    Array.from(fxList.children).forEach(li => {
-      li.classList.toggle('selected', li.dataset.value === 'none');
-    });
-    document.getElementById('trail-always').checked = false;
+    hueValue = 0;
+    effectTime = 0;
     trailAlways = false;
+    document.getElementById('trail-always').checked = false;
     document.getElementById('snapshot-message').style.display = 'none';
-    document.getElementById('gravity-btn').textContent = 'Toggle Gravity';
-    isFalling = false;
     panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
     panelY = window.innerHeight - controlPanel.offsetHeight - 15;
     controlPanel.style.left = `${panelX}px`;
     controlPanel.style.top = `${panelY}px`;
     controlPanel.style.right = 'auto';
     controlPanel.style.bottom = 'auto';
+    const fxList = document.getElementById('fx-list');
+    fxList.style.display = 'none';
+    document.getElementById('fx-button').textContent = 'FX';
+    Array.from(fxList.children).forEach(li => {
+      li.classList.toggle('selected', li.dataset.value === 'none');
+    });
     animate(performance.now());
   }
 
@@ -510,7 +490,7 @@
   }
 
   function changeScale(value) {
-    scale = value;
+    scale = parseFloat(value);
     document.getElementById('scale-value').textContent = value;
   }
 
@@ -703,64 +683,40 @@
       const scaledWidth = sprite.width * scale;
       const scaledHeight = sprite.height * scale;
 
-      if (isFalling) {
-        dy += gravity;
-        spriteX += dx * deltaTime * 60;
-        spriteY += dy * deltaTime * 60;
+      let nextX = spriteX + dx * deltaTime * 60;
+      let nextY = spriteY + dy * deltaTime * 60;
 
-        if (spriteX + scaledWidth > canvas.width || spriteX < 0) {
-          dx *= -1;
-          spriteX = Math.max(0, Math.min(spriteX, canvas.width - scaledWidth));
-        }
-
-        if (spriteY + scaledHeight > canvas.height) {
-          spriteY = canvas.height - scaledHeight;
-          dy *= -bounceFriction;
-          if (Math.abs(dy) < 1) {
-            dy = 0;
-          }
-        }
-
-        if (spriteY < 0) {
-          spriteY = 0;
-          dy = 0;
-        }
-      } else {
-        let nextX = spriteX + dx * deltaTime * 60;
-        let nextY = spriteY + dy * deltaTime * 60;
-
-        let hitWall = false;
-        if (nextX + scaledWidth > canvas.width) {
-          nextX = canvas.width - scaledWidth;
-          dx = -Math.abs(dx);
-          hitWall = true;
-        } else if (nextX < 0) {
-          nextX = 0;
-          dx = Math.abs(dx);
-          hitWall = true;
-        }
-
-        if (nextY + scaledHeight > canvas.height) {
-          nextY = canvas.height - scaledHeight;
-          dy = -Math.abs(dy);
-          hitWall = true;
-        } else if (nextY < 0) {
-          nextY = 0;
-          dy = Math.abs(dy);
-          hitWall = true;
-        }
-
-        if (hitWall) {
-          const angleChange = (Math.random() - 0.5) * Math.PI / 8;
-          const currentAngle = Math.atan2(dy, dx);
-          const newAngle = currentAngle + angleChange;
-          dx = Math.cos(newAngle) * speed;
-          dy = Math.sin(newAngle) * speed;
-        }
-
-        spriteX = nextX;
-        spriteY = nextY;
+      let hitWall = false;
+      if (nextX + scaledWidth > canvas.width) {
+        nextX = canvas.width - scaledWidth;
+        dx = -Math.abs(dx);
+        hitWall = true;
+      } else if (nextX < 0) {
+        nextX = 0;
+        dx = Math.abs(dx);
+        hitWall = true;
       }
+
+      if (nextY + scaledHeight > canvas.height) {
+        nextY = canvas.height - scaledHeight;
+        dy = -Math.abs(dy);
+        hitWall = true;
+      } else if (nextY < 0) {
+        nextY = 0;
+        dy = Math.abs(dy);
+        hitWall = true;
+      }
+
+      if (hitWall) {
+        const angleChange = (Math.random() - 0.5) * Math.PI / 8;
+        const currentAngle = Math.atan2(dy, dx);
+        const newAngle = currentAngle + angleChange;
+        dx = Math.cos(newAngle) * speed;
+        dy = Math.sin(newAngle) * speed;
+      }
+
+      spriteX = nextX;
+      spriteY = nextY;
     }
 
     if (trailAlways || isDraggingSprite) {
@@ -798,9 +754,9 @@
   });
 
   controlPanel.addEventListener('touchstart', (e) => {
-    e.preventDefault();
     const target = e.target;
     if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
+      e.preventDefault();
       isDraggingPanel = true;
       controlPanel.classList.add('dragging');
       const touch = e.touches[0];
@@ -925,6 +881,13 @@
     }
   });
 
+  document.getElementById('fx-list').addEventListener('touchstart', (e) => {
+    if (e.target.tagName === 'LI') {
+      e.preventDefault();
+      changeEffect(e.target);
+    }
+  });
+
   window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -932,6 +895,12 @@
     trailCanvas.height = canvas.height;
     spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2));
     spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
+    panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
+    panelY = window.innerHeight - controlPanel.offsetHeight - 15;
+    controlPanel.style.left = `${panelX}px`;
+    controlPanel.style.top = `${panelY}px`;
+    controlPanel.style.right = 'auto';
+    controlPanel.style.bottom = 'auto';
   });
 
   window.onload = () => {
