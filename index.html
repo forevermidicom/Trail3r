@@ -7,864 +7,940 @@
 <title>Trail³r</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap" rel="stylesheet">
 <style>
-body {
-margin: 0;
-background: #000;
-color: #0f0;
-font-family: 'Inter', sans-serif;
-display: flex;
-justify-content: center;
-align-items: center;
-height: 100vh;
-overflow: hidden;
-touch-action: none;
-}
-canvas {
-border: 1px solid #0f0;
-background: url('https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png') no-repeat center;
-background-size: cover;
-background-position: center;
-width: 100vw;
-height: 100vh;
-touch-action: none;
-}
-#control-panel {
-position: absolute;
-bottom: 15px;
-width: 218.4px;
-background: rgba(0, 0, 0, 0.6);
-padding: 7.8px;
-border: 2px solid #0f0;
-border-radius: 8px;
-display: flex;
-flex-direction: row;
-flex-wrap: wrap;
-gap: 3px;
-justify-content: center;
-align-items: center;
-box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.2);
-backdrop-filter: blur(2px);
-max-height: 30vh;
-overflow-y: auto;
-pointer-events: auto;
-cursor: grab;
-}
-#control-panel.dragging {
-cursor: grabbing;
-}
-#control-panel::-webkit-scrollbar {
-width: 8px;
-}
-#control-panel::-webkit-scrollbar-track {
-background: #111;
-}
-#control-panel::-webkit-scrollbar-thumb {
-background: #0f0;
-border-radius: 4px;
-}
-#control-panel h1 {
-font-size: 18.72px;
-margin: 0;
-text-align: center;
-text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-width: 100%;
-}
-#control-panel p {
-font-size: 9.36px;
-margin: 0;
-text-align: center;
-text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
-width: 100%;
-}
-#control-panel a {
-color: #0f0;
-text-decoration: none;
-cursor: pointer;
-}
-button, input[type="file"], select, input[type="checkbox"] {
-background: rgba(0, 0, 0, 0.5);
-color: #0f0;
-border: 1px solid #0f0;
-font-family: 'Inter', sans-serif;
-font-size: 12.48px;
-padding: 4.68px;
-cursor: pointer;
-text-align: center;
-width: calc(50% - 1.5px);
-border-radius: 4px;
-transition: transform 0.3s ease, box-shadow 0.3s ease;
-touch-action: manipulation;
-}
-#load-bg-btn, #fx-button, #find-sprites-btn, #reset-btn {
-font-size: 11px;
-}
-select {
-appearance: none;
--webkit-appearance: none;
--moz-appearance: none;
-background: rgba(0, 0, 0, 0.5) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%230f0"><polygon points="0,0 10,0 5,10"/></svg>') no-repeat right 5px center;
-background-size: 10px;
-max-height: 100px;
-overflow-y: auto;
-}
-select::-webkit-scrollbar {
-width: 8px;
-}
-select::-webkit-scrollbar-track {
-background: #111;
-}
-select::-webkit-scrollbar-thumb {
-background: #0f0;
-border-radius: 4px;
-}
-select option:checked {
-background: #0f0;
-color: #000;
-}
-input[type="range"] {
-width: calc(50% - 1.5px);
-accent-color: #0f0;
-cursor: pointer;
-touch-action: manipulation;
-margin-top: 10px;
-}
-input[type="range"]::-webkit-slider-runnable-track {
-background: #111;
-height: 8px;
-border: 1px solid #0f0;
-border-radius: 4px;
-}
-input[type="range"]::-webkit-slider-thumb {
-background: #0f0;
-border: 1px solid #0f0;
-height: 16px;
-width: 16px;
-border-radius: 50%;
-margin-top: -4px;
-box-shadow: 0 0 8px #0f0, 0 0 12px rgba(0, 255, 0, 0.6);
-}
-input[type="range"]::-moz-range-track {
-background: #111;
-height: 8px;
-border: 1px solid #0f0;
-border-radius: 4px;
-}
-input[type="range"]::-moz-range-thumb {
-background: #0f0;
-border: 1px solid #0f0;
-height: 16px;
-width: 16px;
-border-radius: 50%;
-box-shadow: 0 0 8px #0f0, 0 0 12px rgba(0, 255, 0, 0.6);
-}
-button:active, select:active, input:active {
-transform: translateY(0);
-box-shadow: none;
-}
-label {
-font-size: 12.48px;
-text-align: center;
-text-shadow: 0 0 3px rgba(0, 255, 0, 0.3);
-width: calc(50% - 1.5px);
-}
-#fx-list {
-width: 100%;
-max-height: none;
-list-style: none;
-padding: 0;
-margin: 0;
-display: none;
-flex-direction: column;
-gap: 3px;
-}
-#fx-list li {
-background: rgba(0, 0, 0, 0.5);
-color: #0f0;
-border: 1px solid #0f0;
-font-size: 12.48px;
-padding: 4.68px;
-text-align: center;
-border-radius: 4px;
-cursor: pointer;
-transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-#fx-list li:active {
-transform: translateY(0);
-box-shadow: none;
-}
-#fx-list li.selected {
-background: #0f0;
-color: #000;
-}
-#fx-button {
-width: calc(50% - 1.5px);
-}
-#snapshot-message {
-position: absolute;
-top: 50%;
-left: 50%;
-transform: translate(-50%, -50%);
-width: 300px;
-background: rgba(0, 0, 0, 0.6);
-padding: 15px;
-border: 2px solid #0f0;
-border-radius: 8px;
-box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.2);
-backdrop-filter: blur(2px);
-text-align: center;
-color: #0f0;
-font-size: 16px;
-text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
-display: none;
-z-index: 1000;
-}
+  body {
+    margin: 0;
+    background: #000;
+    color: #0f0;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+  }
+  canvas {
+    border: 1px solid #0f0;
+    background: url('https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png') no-repeat center;
+    background-size: cover;
+    background-position: center;
+    width: 100vw;
+    height: 100vh;
+    touch-action: none;
+  }
+  #control-panel {
+    position: absolute;
+    bottom: 15px;
+    width: 218.4px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 7.8px;
+    border: 2px solid #0f0;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.2);
+    backdrop-filter: blur(2px);
+    max-height: 30vh;
+    overflow-y: auto;
+    pointer-events: auto;
+    cursor: grab;
+  }
+  #control-panel.dragging {
+    cursor: grabbing;
+  }
+  #control-panel::-webkit-scrollbar {
+    width: 8px;
+  }
+  #control-panel::-webkit-scrollbar-track {
+    background: #111;
+  }
+  #control-panel::-webkit-scrollbar-thumb {
+    background: #0f0;
+    border-radius: 4px;
+  }
+  #control-panel h1 {
+    font-size: 18.72px;
+    margin: 0;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+    width: 100%;
+  }
+  #control-panel p {
+    font-size: 9.36px;
+    margin: 0;
+    text-align: center;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
+    width: 100%;
+  }
+  #control-panel a {
+    color: #0f0;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  button, input[type="file"], select, input[type="checkbox"] {
+    background: rgba(0, 0, 0, 0.8);
+    color: #0f0;
+    border: 1px solid #0f0;
+    font-family: 'Inter', sans-serif;
+    font-size: 12.48px;
+    padding: 4.68px;
+    cursor: pointer;
+    text-align: center;
+    width: calc(50% - 1.5px);
+    border-radius: 4px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    touch-action: manipulation;
+  }
+  #load-bg-btn, #fx-button, #find-sprites-btn, #reset-btn, #gravity-btn {
+    font-size: 11px;
+  }
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: rgba(0, 0, 0, 0.8) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%230f0"><polygon points="0,0 10,0 5,10"/></svg>') no-repeat right 5px center;
+    background-size: 10px;
+    max-height: 100px;
+    overflow-y: auto;
+  }
+  select::-webkit-scrollbar {
+    width: 8px;
+  }
+  select::-webkit-scrollbar-track {
+    background: #111;
+  }
+  select::-webkit-scrollbar-thumb {
+    background: #0f0;
+    border-radius: 4px;
+  }
+  select option:checked {
+    background: #0f0;
+    color: #000;
+  }
+  input[type="range"] {
+    width: calc(50% - 1.5px);
+    accent-color: #0f0;
+    cursor: pointer;
+    touch-action: manipulation;
+    margin-top: 10px;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    background: rgba(0, 0, 0, 0.8);
+    height: 8px;
+    border: 1px solid #0f0;
+    border-radius: 4px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    background: #0f0;
+    border: 1px solid #0f0;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    margin-top: -4px;
+    box-shadow: 0 0 8px #0f0, 0 0 12px rgba(0, 255, 0, 0.6);
+  }
+  input[type="range"]::-moz-range-track {
+    background: rgba(0, 0, 0, 0.8);
+    height: 8px;
+    border: 1px solid #0f0;
+    border-radius: 4px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    background: #0f0;
+    border: 1px solid #0f0;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #0f0, 0 0 12px rgba(0, 255, 0, 0.6);
+  }
+  button:active, select:active, input:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+  label {
+    font-size: 12.48px;
+    text-align: center;
+    text-shadow: 0 0 3px rgba(0, 255, 0, 0.3);
+    width: calc(50% - 1.5px);
+  }
+  #fx-list {
+    width: 100%;
+    max-height: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: none;
+    flex-direction: column;
+    gap: 3px;
+  }
+  #fx-list li {
+    background: rgba(0, 0, 0, 0.8);
+    color: #0f0;
+    border: 1px solid #0f0;
+    font-size: 12.48px;
+    padding: 4.68px;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  #fx-list li:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+  #fx-list li.selected {
+    background: #0f0;
+    color: #000;
+  }
+  #fx-button {
+    width: calc(50% - 1.5px);
+  }
+  #snapshot-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 15px;
+    border: 2px solid #0f0;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.2);
+    backdrop-filter: blur(2px);
+    text-align: center;
+    color: #0f0;
+    font-size: 16px;
+    text-shadow: 0 0 5px rgba(0, 255, 0, 0.8);
+    display: none;
+    z-index: 1000;
+  }
 </style>
 </head>
 <body>
 <canvas id="canvas"></canvas>
 <div id="control-panel">
-<h1 id="control-panel-heading">Trail³r</h1>
-<p><a href="https://forevermidi.com/" target="_blank">forevermidi.com</a></p>
-<button onclick="document.getElementById('sprite-upload').click()">Load Sprite</button>
-<input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
-<button id="load-bg-btn" onclick="document.getElementById('bg-upload').click()">Load Background</button>
-<input type="file" id="bg-upload" accept="image/*" style="display: none;" onchange="loadBackground(event)">
-<button id="find-sprites-btn" onclick="window.open('https://pixabay.com/images/search/transparent%20background%20sprites/', '_blank')">Find Sprites</button>
-<button onclick="handleSnapshot()">Snapshot</button>
-<button id="fx-button" onclick="toggleFxList()">FX</button>
-<button id="reset-btn" onclick="resetCanvas()">Reset</button>
-<ul id="fx-list">
-<li data-value="none" class="selected">No FX</li>
-<li data-value="grayscale">Grayscale</li>
-<li data-value="invert">Invert</li>
-<li data-value="sepia">Sepia</li>
-<li data-value="contrast">Contrast</li>
-<li data-value="brightness">Brightness</li>
-<li data-value="hue">Hue Rotate</li>
-<li data-value="randomHue">Random Hue</li>
-<li data-value="posterize">Posterize</li>
-<li data-value="pixelate">Pixelate</li>
-<li data-value="blur">Blur</li>
-<li data-value="chromatic">Chromatic</li>
-<li data-value="neon">Neon</li>
-<li data-value="static">Static</li>
-<li data-value="haunt">Haunt</li>
-<li data-value="ghost">Ghost</li>
-<li data-value="flicker">Flicker</li>
-<li data-value="420">420</li>
-<li data-value="ripple">Ripple</li>
-<li data-value="distort">Distort</li>
-<li data-value="warp">Warp</li>
-<li data-value="vortex">Vortex</li>
-<li data-value="dreamscape">Dreamscape</li>
-<li data-value="melt">Melt</li>
-<li data-value="shatter">Shatter</li>
-<li data-value="fractal">Fractal</li>
-<li data-value="pulse">Pulse</li>
-<li data-value="flip">Flip</li>
-<li data-value="rotate90">Rotate 90</li>
-<li data-value="eraser">Eraser</li>
-</ul>
-<input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
-<label for="scale">Scale: <span id="scale-value">1</span></label>
-<input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
-<label for="trail-always">Always Trail</label>
+  <h1 id="control-panel-heading">Trail³r</h1>
+  <p><a href="https://forevermidi.com/" target="_blank">forevermidi.com</a></p>
+  <button onclick="document.getElementById('sprite-upload').click()">Load Sprite</button>
+  <input type="file" id="sprite-upload" accept="image/*" style="display: none;" onchange="loadSprite(event)">
+  <button id="load-bg-btn" onclick="document.getElementById('bg-upload').click()">Load Background</button>
+  <input type="file" id="bg-upload" accept="image/*" style="display: none;" onchange="loadBackground(event)">
+  <button id="find-sprites-btn" onclick="window.open('https://pixabay.com/images/search/transparent%20background%20sprites/', '_blank')">Find Sprites</button>
+  <button onclick="handleSnapshot()">Snapshot</button>
+  <button id="fx-button" onclick="toggleFxList()">FX</button>
+  <button id="reset-btn" onclick="resetCanvas()">Reset</button>
+  <button id="gravity-btn" onclick="toggleGravity()">Toggle Gravity</button>
+  <ul id="fx-list">
+    <li data-value="none" class="selected">No FX</li>
+    <li data-value="grayscale">Grayscale</li>
+    <li data-value="invert">Invert</li>
+    <li data-value="sepia">Sepia</li>
+    <li data-value="contrast">Contrast</li>
+    <li data-value="brightness">Brightness</li>
+    <li data-value="hue">Hue Rotate</li>
+    <li data-value="randomHue">Random Hue</li>
+    <li data-value="pixelate">Pixelate</li>
+    <li data-value="blur">Blur</li>
+    <li data-value="chromatic">Chromatic</li>
+    <li data-value="neon">Neon</li>
+    <li data-value="static">Static</li>
+    <li data-value="haunt">Haunt</li>
+    <li data-value="ghost">Ghost</li>
+    <li data-value="flicker">Flicker</li>
+    <li data-value="420">420</li>
+    <li data-value="ripple">Ripple</li>
+    <li data-value="distort">Distort</li>
+    <li data-value="warp">Warp</li>
+    <li data-value="vortex">Vortex</li>
+    <li data-value="dreamscape">Dreamscape</li>
+    <li data-value="melt">Melt</li>
+    <li data-value="shatter">Shatter</li>
+    <li data-value="fractal">Fractal</li>
+    <li data-value="pulse">Pulse</li>
+    <li data-value="flip">Flip</li>
+    <li data-value="rotate90">Rotate 90</li>
+    <li data-value="eraser">Eraser</li>
+  </ul>
+  <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
+  <label for="scale">Scale: <span id="scale-value">1</span></label>
+  <input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
+  <label for="trail-always">Always Trail</label>
 </div>
-<div id="snapshot-message">no snapshots for now. only panta rhei 🧘</div>
-
+<div id="snapshot-message">Snapshot captured! Downloading...</div>
 <script>
-// Custom PRNG with seed for better randomness control
-let seed = Date.now();
-function mulberry32(a) {
-    let t = a += 0x6D2B79F5;
-    t = Math.imul(t ^ t >>> 15, t | 1);
-    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-}
-function random() {
-    return mulberry32(seed++);
-}
+  const canvas = document.getElementById('canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const controlPanel = document.getElementById('control-panel');
+  let panelX = controlPanel.offsetLeft;
+  let panelY = controlPanel.offsetTop;
+  let isDraggingPanel = false;
+  let panelOffsetX = 0;
+  let panelOffsetY = 0;
+  let sprite = new Image();
+  sprite.crossOrigin = "anonymous"; // Handle cross-origin for sprite
+  const defaultSprite = 'https://freepngimg.com/thumb/emoji/104116-face-emoji-3d-download-free-image.png';
+  sprite.src = defaultSprite;
+  let spriteX = canvas.width / 2, spriteY = canvas.height / 2;
+  let dx = 0, dy = 0;
+  const speed = 1.5;
+  let scale = 1;
+  let effects = ['none'];
+  let isDraggingSprite = false;
+  let trailCanvas = document.createElement('canvas');
+  trailCanvas.width = canvas.width;
+  trailCanvas.height = canvas.height;
+  const trailCtx = trailCanvas.getContext('2d', { willReadFrequently: true });
+  let hueValue = 0;
+  let effectTime = 0;
+  const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png';
+  let currentBackgroundImage = new Image();
+  currentBackgroundImage.crossOrigin = "anonymous"; // Handle cross-origin for background
+  currentBackgroundImage.src = defaultBackground;
+  let trailAlways = false;
+  let lastTime = performance.now();
+  let gravity = 0.5;
+  let bounceFriction = 0.8;
+  let isFalling = false;
 
-const canvas = document.getElementById('canvas');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const ctx = canvas.getContext('2d', { willReadFrequently: true });
-const controlPanel = document.getElementById('control-panel');
-let panelX = controlPanel.offsetLeft;
-let panelY = controlPanel.offsetTop;
-let isDraggingPanel = false;
-let panelOffsetX = 0;
-let panelOffsetY = 0;
-let sprite = new Image();
-const defaultSprite = 'https://freepngimg.com/thumb/emoji/104116-face-emoji-3d-download-free-image.png';
-sprite.src = defaultSprite;
-let spriteX = canvas.width / 2, spriteY = canvas.height / 2;
-let targetX = spriteX, targetY = spriteY;
-const speed = 100; // Pixels per second
-let scale = 1;
-let effects = ['none'];
-let isDraggingSprite = false;
-let trailCanvas = document.createElement('canvas');
-trailCanvas.width = canvas.width;
-trailCanvas.height = canvas.height;
-const trailCtx = trailCanvas.getContext('2d', { willReadFrequently: true });
-let hueValue = 0;
-let effectTime = 0;
-const defaultBackground = 'https://toppng.com/uploads/preview/funny-face-png-spiderman-crying-meme-11562856143g4wgnkz7jl.png';
-let currentBackgroundImage = new Image();
-currentBackgroundImage.src = defaultBackground;
-let trailAlways = false;
-let lastTime = performance.now();
-let timeSinceNewTarget = 0;
-const targetChangeInterval = 2; // Seconds between new random targets
+  sprite.onload = () => {
+    const ratio = 218.4 / Math.max(sprite.width, sprite.height);
+    sprite.width = 218.4;
+    sprite.height *= ratio;
+    spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
+    spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
+    if (!isDraggingSprite) {
+      resetVelocity();
+    }
+  };
 
-sprite.onload = () => {
-const ratio = 218.4 / Math.max(sprite.width, sprite.height);
-sprite.width = 218.4;
-sprite.height *= ratio;
-spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
-spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-targetX = spriteX;
-targetY = spriteY;
-seed = Date.now(); // Reset seed when loading new sprite
-};
+  sprite.onerror = () => {
+    console.error('Failed to load sprite. Using fallback.');
+    sprite.src = 'https://via.placeholder.com/218.4x218.4.png?text=Sprite';
+  };
 
-sprite.onerror = () => {
-console.error('Failed to load sprite. Using fallback.');
-sprite.src = 'https://via.placeholder.com/218.4x218.4.png?text=Sprite';
-};
+  currentBackgroundImage.onload = () => {
+    canvas.style.background = `url(${currentBackgroundImage.src}) no-repeat center`;
+    canvas.style.backgroundSize = 'cover';
+  };
 
-currentBackgroundImage.onload = () => {
-canvas.style.background = `url(${currentBackgroundImage.src}) no-repeat center`;
-canvas.style.backgroundSize = 'cover';
-};
+  currentBackgroundImage.onerror = () => {
+    console.error('Failed to load default background');
+    canvas.style.background = 'black';
+  };
 
-currentBackgroundImage.onerror = () => {
-console.error('Failed to load default background');
-canvas.style.background = 'black';
-};
+  function resetVelocity() {
+    const angle = Math.random() * 2 * Math.PI;
+    dx = Math.cos(angle) * speed;
+    dy = Math.sin(angle) * speed;
+  }
 
-function setNewTarget() {
-const scaledWidth = sprite.width * scale;
-const scaledHeight = sprite.height * scale;
-targetX = random() * (canvas.width - scaledWidth);
-targetY = random() * (canvas.height - scaledHeight);
-timeSinceNewTarget = 0;
-seed = Date.now(); // Reseed for next random call
-}
+  function toggleGravity() {
+    isFalling = !isFalling;
+    if (isFalling) {
+      document.getElementById('gravity-btn').textContent = 'Disable Gravity';
+      dy = 0;
+    } else {
+      document.getElementById('gravity-btn').textContent = 'Toggle Gravity';
+      resetVelocity();
+    }
+  }
 
-function loadSprite(event) {
-const file = event.target.files[0];
-if (file) {
-sprite.src = URL.createObjectURL(file);
-} else {
-alert('Please select an image file for the sprite.');
-}
-}
+  function loadSprite(event) {
+    const file = event.target.files[0];
+    if (file) {
+      sprite.src = URL.createObjectURL(file);
+    } else {
+      alert('Please select an image file for the sprite.');
+    }
+  }
 
-function loadBackground(event) {
-const file = event.target.files[0];
-if (file) {
-const bg = new Image();
-bg.src = URL.createObjectURL(file);
-bg.onload = () => {
-currentBackgroundImage = bg;
-canvas.style.background = `url(${bg.src}) no-repeat center`;
-canvas.style.backgroundSize = 'cover';
-};
-bg.onerror = () => {
-alert('Failed to load background image. Please try another file.');
-};
-} else {
-alert('Please select an image file for the background.');
-}
-}
+  function loadBackground(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const bg = new Image();
+      bg.crossOrigin = "anonymous";
+      bg.src = URL.createObjectURL(file);
+      bg.onload = () => {
+        currentBackgroundImage = bg;
+        canvas.style.background = `url(${bg.src}) no-repeat center`;
+        canvas.style.backgroundSize = 'cover';
+      };
+      bg.onerror = () => {
+        alert('Failed to load background image. Please try another file.');
+      };
+    } else {
+      alert('Please select an image file for the background.');
+    }
+  }
 
-function handleSnapshot() {
-const snapshotMessage = document.getElementById('snapshot-message');
-snapshotMessage.style.display = 'block';
-setTimeout(() => {
-snapshotMessage.style.display = 'none';
-}, 3000);
-takeCanvasSnapshot();
-}
+  function handleSnapshot() {
+    const snapshotMessage = document.getElementById('snapshot-message');
+    snapshotMessage.style.display = 'block';
+    setTimeout(() => {
+      snapshotMessage.style.display = 'none';
+    }, 2000);
+    takeCanvasSnapshot();
+  }
 
-function takeCanvasSnapshot() {
-const tempCanvas = document.createElement('canvas');
-tempCanvas.width = window.innerWidth;
-tempCanvas.height = window.innerHeight;
-const tempCtx = tempCanvas.getContext('2d');
-tempCtx.drawImage(currentBackgroundImage, 0, 0, tempCanvas.width, tempCanvas.height);
-tempCtx.drawImage(trailCanvas, 0, 0);
-applyEffects(tempCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-const dataURL = tempCanvas.toDataURL('image/png');
-const a = document.createElement('a');
-a.href = dataURL;
-a.download = 'trail3r_snapshot.png';
-a.click();
-}
+  function takeCanvasSnapshot() {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = window.innerWidth;
+    tempCanvas.height = window.innerHeight;
+    const tempCtx = tempCanvas.getContext('2d');
 
-function resetCanvas() {
-if (window.animationFrameId) {
-cancelAnimationFrame(window.animationFrameId);
-}
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
-sprite.src = defaultSprite;
-currentBackgroundImage.src = defaultBackground;
-canvas.style.background = `url(${defaultBackground}) no-repeat center`;
-canvas.style.backgroundSize = 'cover';
-sprite.width = 218.4;
-sprite.height = 218.4;
-spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
-spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-targetX = spriteX;
-targetY = spriteY;
-seed = Date.now(); // Reset seed
-effects = ['none'];
-const fxList = document.getElementById('fx-list');
-Array.from(fxList.children).forEach(li => {
-li.classList.toggle('selected', li.dataset.value === 'none');
-});
-document.getElementById('trail-always').checked = false;
-trailAlways = false;
-document.getElementById('snapshot-message').style.display = 'none';
-panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
-panelY = window.innerHeight - controlPanel.offsetHeight - 15;
-controlPanel.style.left = `${panelX}px`;
-controlPanel.style.top = `${panelY}px`;
-controlPanel.style.right = 'auto';
-controlPanel.style.bottom = 'auto';
-animate(performance.now());
-}
+    // Draw background image with cover scaling
+    if (currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
+      const canvasAspect = tempCanvas.width / tempCanvas.height;
+      const imgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
+      let drawWidth, drawHeight, offsetX, offsetY;
 
-function toggleFxList() {
-const fxList = document.getElementById('fx-list');
-const fxButton = document.getElementById('fx-button');
-if (fxList.style.display === 'flex') {
-fxList.style.display = 'none';
-fxButton.textContent = 'FX';
-} else {
-fxList.style.display = 'flex';
-fxButton.textContent = 'CLOSE FX';
-}
-}
+      if (imgAspect > canvasAspect) {
+        // Image is wider than canvas: scale by height
+        drawHeight = tempCanvas.height;
+        drawWidth = drawHeight * imgAspect;
+        offsetX = (tempCanvas.width - drawWidth) / 2;
+        offsetY = 0;
+      } else {
+        // Image is taller than canvas: scale by width
+        drawWidth = tempCanvas.width;
+        drawHeight = drawWidth / imgAspect;
+        offsetX = 0;
+        offsetY = (tempCanvas.height - drawHeight) / 2;
+      }
+      tempCtx.drawImage(currentBackgroundImage, offsetX, offsetY, drawWidth, drawHeight);
+    } else {
+      // Fallback: fill with black if background image fails
+      tempCtx.fillStyle = 'black';
+      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    }
 
-function changeEffect(element) {
-const value = element.dataset.value;
-if (effects.includes(value)) {
-effects = effects.filter(effect => effect !== value);
-element.classList.remove('selected');
-if (effects.length === 0) {
-effects = ['none'];
-document.querySelector('#fx-list li[data-value="none"]').classList.add('selected');
-}
-} else {
-if (value === 'none') {
-effects = ['none'];
-Array.from(document.getElementById('fx-list').children).forEach(li => {
-li.classList.toggle('selected', li.dataset.value === 'none');
-});
-} else {
-effects = effects.filter(effect => effect !== 'none');
-effects.push(value);
-element.classList.add('selected');
-document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
-}
-}
-}
+    // Draw trail canvas
+    tempCtx.drawImage(trailCanvas, 0, 0);
 
-function changeScale(value) {
-scale = value;
-document.getElementById('scale-value').textContent = value;
-}
+    // Draw sprite with effects
+    applyEffects(tempCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
 
-function toggleTrailAlways(checked) {
-trailAlways = checked;
-}
+    // Generate and download snapshot
+    try {
+      const dataURL = tempCanvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = 'trail3r_snapshot.png';
+      a.click();
+    } catch (error) {
+      console.error('Failed to generate snapshot:', error);
+      alert('Snapshot failed. Please ensure images are loaded and try again.');
+    }
+  }
 
-function applyEffects(ctx, img, x, y, width, height) {
-ctx.save();
-ctx.translate(x, y);
-effects.forEach(effect => {
-ctx.save();
-if (effect === 'distort') {
-ctx.translate(width / 2, height / 2);
-ctx.scale(1 + Math.sin(effectTime) * 0.2, 1 + Math.cos(effectTime) * 0.2);
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'flicker') {
-ctx.translate(width / 2, height / 2);
-ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
-ctx.filter = `hue-rotate(${random() * 60}deg)`;
-ctx.globalAlpha = 0.9;
-const offsetX = (random() - 0.5) * 10;
-const offsetY = (random() - 0.5) * 10;
-ctx.drawImage(img, offsetX - width / 2, offsetY - height / 2, width, height);
-} else if (effect === '420') {
-ctx.translate(width / 2, height / 2);
-ctx.rotate(Math.sin(effectTime) * Math.PI);
-ctx.scale(1 + Math.sin(effectTime * 2) * 0.3, 1 + Math.cos(effectTime * 2) * 0.3);
-ctx.filter = `hue-rotate(${Math.sin(effectTime) * 360}deg) saturate(200%) contrast(150%)`;
-ctx.globalAlpha = 0.8 + Math.sin(effectTime * 3) * 0.2;
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'vortex') {
-ctx.translate(width / 2, height / 2);
-ctx.rotate(Math.sin(effectTime * 0.5) * Math.PI);
-ctx.scale(1 + Math.sin(effectTime) * 0.1, 1 + Math.cos(effectTime) * 0.1);
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'ripple') {
-const offset = Math.sin(effectTime * 2) * 10;
-ctx.translate(offset, offset);
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'neon') {
-ctx.filter = 'contrast(200%) brightness(150%) drop-shadow(0 0 10px #0f0)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'fractal') {
-ctx.translate(width / 2, height / 2);
-for (let i = 0; i < 4; i++) {
-ctx.save();
-ctx.scale(0.7 - i * 0.15, 0.7 - i * 0.15);
-ctx.rotate((Math.PI / 4) * (i + Math.sin(effectTime * 0.5)));
-ctx.globalAlpha = 1.0 - i * 0.2;
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-ctx.restore();
-}
-} else if (effect === 'chromatic') {
-ctx.filter = 'hue-rotate(0deg)';
-ctx.drawImage(img, 2, 2, width, height);
-ctx.filter = 'hue-rotate(120deg)';
-ctx.drawImage(img, -2, -2, width, height);
-ctx.filter = 'hue-rotate(240deg)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'dreamscape') {
-ctx.filter = `blur(3px) opacity(0.7) hue-rotate(${Math.sin(effectTime) * 180}deg)`;
-ctx.translate(width / 2, height / 2);
-ctx.scale(1 + Math.sin(effectTime) * 0.15, 1 + Math.cos(effectTime) * 0.15);
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'warp') {
-ctx.translate(width / 2, height / 2);
-ctx.scale(1 + Math.sin(effectTime * 1.5) * 0.3, 1 + Math.cos(effectTime * 1.5) * 0.3);
-ctx.rotate(Math.sin(effectTime * 0.8) * 0.5);
-ctx.filter = `contrast(150%) hue-rotate(${Math.sin(effectTime) * 90}deg)`;
-ctx.globalAlpha = 0.7;
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'static') {
-ctx.filter = `contrast(200%) brightness(120%)`;
-ctx.globalAlpha = random() * 0.3 + 0.7;
-const noise = random() * 10 - 5;
-ctx.drawImage(img, noise, noise, width, height);
-} else if (effect === 'ghost') {
-ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
-ctx.filter = `blur(2px) hue-rotate(${Math.sin(effectTime * 0.5) * 180}deg)`;
-ctx.drawImage(img, 0, 0, width, height);
-ctx.globalAlpha = 0.3;
-ctx.drawImage(img, 10, 10, width, height);
-} else if (effect === 'melt') {
-ctx.translate(width / 2, height / 2);
-ctx.scale(1, 1 + Math.sin(effectTime * 1.2) * 0.4);
-ctx.filter = `contrast(150%) saturate(200%)`;
-ctx.drawImage(img, -width / 2, -height / 2 + Math.sin(effectTime) * 20, width, height);
-} else if (effect === 'pulse') {
-ctx.translate(width / 2, height / 2);
-const pulseScale = 1 + Math.abs(Math.sin(effectTime * 2)) * 0.2;
-ctx.scale(pulseScale, pulseScale);
-ctx.filter = `brightness(150%) contrast(150%)`;
-ctx.globalAlpha = 0.8;
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'shatter') {
-ctx.translate(width / 2, height / 2);
-for (let i = 0; i < 3; i++) {
-ctx.save();
-ctx.rotate(random() * 0.2 - 0.1);
-ctx.translate((random() - 0.5) * 15, (random() - 0.5) * 15);
-ctx.globalAlpha = 0.6 + random() * 0.4;
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-ctx.restore();
-}
-} else if (effect === 'flip') {
-ctx.translate(width / 2, height / 2);
-ctx.scale(-1, 1);
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'haunt') {
-ctx.filter = `grayscale(80%) blur(3px) contrast(150%)`;
-ctx.globalAlpha = 0.4 + Math.abs(Math.sin(effectTime * 3)) * 0.3;
-const offsetX = (random() - 0.5) * 15;
-const offsetY = (random() - 0.5) * 15;
-ctx.translate(offsetX, offsetY);
-ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'eraser') {
-if (ctx === trailCtx) {
-ctx.globalCompositeOperation = 'destination-out';
-ctx.globalAlpha = 0.5;
-ctx.drawImage(img, 0, 0, width, height);
-ctx.globalCompositeOperation = 'source-over';
-ctx.globalAlpha = 1.0;
-} else {
-ctx.drawImage(img, 0, 0, width, height);
-}
-} else if (effect === 'grayscale') {
-ctx.filter = 'grayscale(100%)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'invert') {
-ctx.filter = 'invert(100%)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'sepia') {
-ctx.filter = 'sepia(100%)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'pixelate') {
-const tempCanvas = document.createElement('canvas');
-tempCanvas.width = 32;
-tempCanvas.height = 32;
-const tempCtx = tempCanvas.getContext('2d');
-tempCtx.imageSmoothingEnabled = false;
-tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-ctx.imageSmoothingEnabled = false;
-ctx.drawImage(tempCanvas, 0, 0, width, height);
-ctx.imageSmoothingEnabled = true;
-} else if (effect === 'blur') {
-ctx.filter = 'blur(5px)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'hue') {
-ctx.filter = `hue-rotate(${hueValue}deg)`;
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'randomHue') {
-ctx.filter = `hue-rotate(${random() * 360}deg)`;
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'contrast') {
-ctx.filter = 'contrast(300%)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'brightness') {
-ctx.filter = 'brightness(250%)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'posterize') {
-ctx.filter = 'contrast(200%) saturate(150%)';
-ctx.drawImage(img, 0, 0, width, height);
-} else if (effect === 'rotate90') {
-ctx.translate(width / 2, height / 2);
-ctx.rotate(Math.PI / 2);
-ctx.drawImage(img, -width / 2, -height / 2, width, height);
-} else if (effect === 'none') {
-ctx.drawImage(img, 0, 0, width, height);
-}
-ctx.restore();
-});
-ctx.restore();
-ctx.globalCompositeOperation = 'source-over';
-}
+  function resetCanvas() {
+    if (window.animationFrameId) {
+      cancelAnimationFrame(window.animationFrameId);
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+    sprite.src = defaultSprite;
+    currentBackgroundImage.src = defaultBackground;
+    canvas.style.background = `url(${defaultBackground}) no-repeat center`;
+    canvas.style.backgroundSize = 'cover';
+    sprite.width = 218.4;
+    sprite.height = 218.4;
+    spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
+    spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
+    resetVelocity();
+    effects = ['none'];
+    const fxList = document.getElementById('fx-list');
+    Array.from(fxList.children).forEach(li => {
+      li.classList.toggle('selected', li.dataset.value === 'none');
+    });
+    document.getElementById('trail-always').checked = false;
+    trailAlways = false;
+    document.getElementById('snapshot-message').style.display = 'none';
+    document.getElementById('gravity-btn').textContent = 'Toggle Gravity';
+    isFalling = false;
+    panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
+    panelY = window.innerHeight - controlPanel.offsetHeight - 15;
+    controlPanel.style.left = `${panelX}px`;
+    controlPanel.style.top = `${panelY}px`;
+    controlPanel.style.right = 'auto';
+    controlPanel.style.bottom = 'auto';
+    animate(performance.now());
+  }
 
-function isMouseOverSprite(x, y) {
-const scaledWidth = sprite.width * scale;
-const scaledHeight = sprite.height * scale;
-return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= spriteY + scaledHeight;
-}
+  function toggleFxList() {
+    const fxList = document.getElementById('fx-list');
+    const fxButton = document.getElementById('fx-button');
+    if (fxList.style.display === 'flex') {
+      fxList.style.display = 'none';
+      fxButton.textContent = 'FX';
+    } else {
+      fxList.style.display = 'flex';
+      fxButton.textContent = 'CLOSE FX';
+    }
+  }
 
-function animate(currentTime) {
-const deltaTime = (currentTime - lastTime) / 1000; // Time since last frame in seconds
-lastTime = currentTime;
-timeSinceNewTarget += deltaTime;
+  function changeEffect(element) {
+    const value = element.dataset.value;
+    if (effects.includes(value)) {
+      effects = effects.filter(effect => effect !== value);
+      element.classList.remove('selected');
+      if (effects.length === 0) {
+        effects = ['none'];
+        document.querySelector('#fx-list li[data-value="none"]').classList.add('selected');
+      }
+    } else {
+      if (value === 'none') {
+        effects = ['none'];
+        Array.from(document.getElementById('fx-list').children).forEach(li => {
+          li.classList.toggle('selected', li.dataset.value === 'none');
+        });
+      } else {
+        effects = effects.filter(effect => effect !== 'none');
+        effects.push(value);
+        element.classList.add('selected');
+        document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
+      }
+    }
+  }
 
-ctx.clearRect(0, 0, canvas.width, canvas.height);
+  function changeScale(value) {
+    scale = value;
+    document.getElementById('scale-value').textContent = value;
+  }
 
-if (!isDraggingSprite) {
-const scaledWidth = sprite.width * scale;
-const scaledHeight = sprite.height * scale;
+  function toggleTrailAlways(checked) {
+    trailAlways = checked;
+  }
 
-// Check if it's time to pick a new target or if sprite is close to current target
-const distToTarget = Math.hypot(spriteX - targetX, spriteY - targetY);
-if (timeSinceNewTarget >= targetChangeInterval || distToTarget < 10) {
-setNewTarget();
-}
+  function applyEffects(ctx, img, x, y, width, height) {
+    ctx.save();
+    ctx.translate(x, y);
+    effects.forEach(effect => {
+      ctx.save();
+      if (effect === 'distort') {
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(1 + Math.sin(effectTime) * 0.2, 1 + Math.cos(effectTime) * 0.2);
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'flicker') {
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
+        ctx.filter = `hue-rotate(${Math.random() * 60}deg)`;
+        ctx.globalAlpha = 0.9;
+        const offsetX = (Math.random() - 0.5) * 10;
+        const offsetY = (Math.random() - 0.5) * 10;
+        ctx.drawImage(img, offsetX - width / 2, offsetY - height / 2, width, height);
+      } else if (effect === '420') {
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(Math.sin(effectTime) * Math.PI);
+        ctx.scale(1 + Math.sin(effectTime * 2) * 0.3, 1 + Math.cos(effectTime * 2) * 0.3);
+        ctx.filter = `hue-rotate(${Math.sin(effectTime) * 360}deg) saturate(200%) contrast(150%)`;
+        ctx.globalAlpha = 0.8 + Math.sin(effectTime * 3) * 0.2;
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'vortex') {
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(Math.sin(effectTime * 0.5) * Math.PI);
+        ctx.scale(1 + Math.sin(effectTime) * 0.1, 1 + Math.cos(effectTime) * 0.1);
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'ripple') {
+        const offset = Math.sin(effectTime * 2) * 10;
+        ctx.translate(offset, offset);
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'neon') {
+        ctx.filter = 'contrast(200%) brightness(150%) drop-shadow(0 0 10px #0f0)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'fractal') {
+        ctx.translate(width / 2, height / 2);
+        for (let i = 0; i < 4; i++) {
+          ctx.save();
+          ctx.scale(0.7 - i * 0.15, 0.7 - i * 0.15);
+          ctx.rotate((Math.PI / 4) * (i + Math.sin(effectTime * 0.5)));
+          ctx.globalAlpha = 1.0 - i * 0.2;
+          ctx.drawImage(img, -width / 2, -height / 2, width, height);
+          ctx.restore();
+        }
+      } else if (effect === 'chromatic') {
+        ctx.filter = 'hue-rotate(0deg)';
+        ctx.drawImage(img, 2, 2, width, height);
+        ctx.filter = 'hue-rotate(120deg)';
+        ctx.drawImage(img, -2, -2, width, height);
+        ctx.filter = 'hue-rotate(240deg)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'dreamscape') {
+        ctx.filter = `blur(3px) opacity(0.7) hue-rotate(${Math.sin(effectTime) * 180}deg)`;
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(1 + Math.sin(effectTime) * 0.15, 1 + Math.cos(effectTime) * 0.15);
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'warp') {
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(1 + Math.sin(effectTime * 1.5) * 0.3, 1 + Math.cos(effectTime * 1.5) * 0.3);
+        ctx.rotate(Math.sin(effectTime * 0.8) * 0.5);
+        ctx.filter = `contrast(150%) hue-rotate(${Math.sin(effectTime) * 90}deg)`;
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'static') {
+        ctx.filter = `contrast(200%) brightness(120%)`;
+        ctx.globalAlpha = Math.random() * 0.3 + 0.7;
+        const noise = Math.random() * 10 - 5;
+        ctx.drawImage(img, noise, noise, width, height);
+      } else if (effect === 'ghost') {
+        ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
+        ctx.filter = `blur(2px) hue-rotate(${Math.sin(effectTime * 0.5) * 180}deg)`;
+        ctx.drawImage(img, 0, 0, width, height);
+        ctx.globalAlpha = 0.3;
+        ctx.drawImage(img, 10, 10, width, height);
+      } else if (effect === 'melt') {
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(1, 1 + Math.sin(effectTime * 1.2) * 0.4);
+        ctx.filter = `contrast(150%) saturate(200%)`;
+        ctx.drawImage(img, -width / 2, -height / 2 + Math.sin(effectTime) * 20, width, height);
+      } else if (effect === 'pulse') {
+        ctx.translate(width / 2, height / 2);
+        const pulseScale = 1 + Math.abs(Math.sin(effectTime * 2)) * 0.2;
+        ctx.scale(pulseScale, pulseScale);
+        ctx.filter = `brightness(150%) contrast(150%)`;
+        ctx.globalAlpha = 0.8;
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'shatter') {
+        ctx.translate(width / 2, height / 2);
+        for (let i = 0; i < 3; i++) {
+          ctx.save();
+          ctx.rotate(Math.random() * 0.2 - 0.1);
+          ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
+          ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+          ctx.drawImage(img, -width / 2, -height / 2, width, height);
+          ctx.restore();
+        }
+      } else if (effect === 'flip') {
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(-1, 1);
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'haunt') {
+        ctx.filter = `grayscale(80%) blur(3px) contrast(150%)`;
+        ctx.globalAlpha = 0.4 + Math.abs(Math.sin(effectTime * 3)) * 0.3;
+        const offsetX = (Math.random() - 0.5) * 15;
+        const offsetY = (Math.random() - 0.5) * 15;
+        ctx.translate(offsetX, offsetY);
+        ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'eraser') {
+        if (ctx === trailCtx) {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.globalAlpha = 0.5;
+          ctx.drawImage(img, 0, 0, width, height);
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.globalAlpha = 1.0;
+        } else {
+          ctx.drawImage(img, 0, 0, width, height);
+        }
+      } else if (effect === 'grayscale') {
+        ctx.filter = 'grayscale(100%)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'invert') {
+        ctx.filter = 'invert(100%)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'sepia') {
+        ctx.filter = 'sepia(100%)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'pixelate') {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 32;
+        tempCanvas.height = 32;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.imageSmoothingEnabled = false;
+        tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(tempCanvas, 0, 0, width, height);
+        ctx.imageSmoothingEnabled = true;
+      } else if (effect === 'blur') {
+        ctx.filter = 'blur(5px)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'hue') {
+        ctx.filter = `hue-rotate(${hueValue}deg)`;
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'randomHue') {
+        ctx.filter = `hue-rotate(${Math.random() * 360}deg)`;
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'contrast') {
+        ctx.filter = 'contrast(300%)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'brightness') {
+        ctx.filter = 'brightness(250%)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'posterize') {
+        ctx.filter = 'contrast(200%) saturate(150%)';
+        ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'rotate90') {
+        ctx.translate(width / 2, height / 2);
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      } else if (effect === 'none') {
+        ctx.drawImage(img, 0, 0, width, height);
+      }
+      ctx.restore();
+    });
+    ctx.restore();
+    ctx.globalCompositeOperation = 'source-over';
+  }
 
-// Move toward target with linear interpolation
-const moveSpeed = speed * deltaTime;
-const dx = targetX - spriteX;
-const dy = targetY - spriteY;
-const dist = Math.hypot(dx, dy);
-if (dist > 0.1) { // Avoid jittering when very close
-const moveX = (dx / dist) * Math.min(moveSpeed, dist);
-const moveY = (dy / dist) * Math.min(moveSpeed, dist);
-spriteX = Math.max(0, Math.min(canvas.width - scaledWidth, spriteX + moveX));
-spriteY = Math.max(0, Math.min(canvas.height - scaledHeight, spriteY + moveY));
-}
-}
+  function isMouseOverSprite(x, y) {
+    const scaledWidth = sprite.width * scale;
+    const scaledHeight = sprite.height * scale;
+    return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= spriteY + scaledHeight;
+  }
 
-if (trailAlways || isDraggingSprite) {
-trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
-applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-}
+  function animate(currentTime) {
+    const deltaTime = (currentTime - lastTime) / 1000;
+    lastTime = currentTime;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-ctx.drawImage(trailCanvas, 0, 0);
-applyEffects(ctx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    if (!isDraggingSprite) {
+      const scaledWidth = sprite.width * scale;
+      const scaledHeight = sprite.height * scale;
 
-if (effects.includes('hue')) {
-hueValue = (hueValue + 2) % 360;
-}
-if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter', 'haunt'].some(e => effects.includes(e))) {
-effectTime += 0.1 * deltaTime * 60; // Normalize effect timing
-}
+      if (isFalling) {
+        dy += gravity;
+        spriteX += dx * deltaTime * 60;
+        spriteY += dy * deltaTime * 60;
 
-window.animationFrameId = requestAnimationFrame(animate);
-}
+        if (spriteX + scaledWidth > canvas.width || spriteX < 0) {
+          dx *= -1;
+          spriteX = Math.max(0, Math.min(spriteX, canvas.width - scaledWidth));
+        }
 
-function isOverControlPanel(x, y) {
-const rect = controlPanel.getBoundingClientRect();
-return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-}
+        if (spriteY + scaledHeight > canvas.height) {
+          spriteY = canvas.height - scaledHeight;
+          dy *= -bounceFriction;
+          if (Math.abs(dy) < 1) {
+            dy = 0;
+          }
+        }
 
-controlPanel.addEventListener('mousedown', (e) => {
-const target = e.target;
-if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
-isDraggingPanel = true;
-controlPanel.classList.add('dragging');
-panelOffsetX = e.clientX - controlPanel.getBoundingClientRect().left;
-panelOffsetY = e.clientY - controlPanel.getBoundingClientRect().top;
-}
-});
+        if (spriteY < 0) {
+          spriteY = 0;
+          dy = 0;
+        }
+      } else {
+        let nextX = spriteX + dx * deltaTime * 60;
+        let nextY = spriteY + dy * deltaTime * 60;
 
-controlPanel.addEventListener('touchstart', (e) => {
-e.preventDefault(); // Prevent scrolling
-const target = e.target;
-if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
-isDraggingPanel = true;
-controlPanel.classList.add('dragging');
-const touch = e.touches[0];
-panelOffsetX = touch.clientX - controlPanel.getBoundingClientRect().left;
-panelOffsetY = touch.clientY - controlPanel.getBoundingClientRect().top;
-}
-});
+        let hitWall = false;
+        if (nextX + scaledWidth > canvas.width) {
+          nextX = canvas.width - scaledWidth;
+          dx = -Math.abs(dx);
+          hitWall = true;
+        } else if (nextX < 0) {
+          nextX = 0;
+          dx = Math.abs(dx);
+          hitWall = true;
+        }
 
-document.addEventListener('mousemove', (e) => {
-if (isDraggingPanel) {
-e.preventDefault();
-panelX = e.clientX - panelOffsetX;
-panelY = e.clientY - panelOffsetY;
-controlPanel.style.left = `${panelX}px`;
-controlPanel.style.top = `${panelY}px`;
-controlPanel.style.right = 'auto';
-controlPanel.style.bottom = 'auto';
-} else if (isDraggingSprite) {
-e.preventDefault();
-const rect = canvas.getBoundingClientRect();
-const mouseX = e.clientX - rect.left;
-const mouseY = e.clientY - rect.top;
-spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
-spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
-}
-});
+        if (nextY + scaledHeight > canvas.height) {
+          nextY = canvas.height - scaledHeight;
+          dy = -Math.abs(dy);
+          hitWall = true;
+        } else if (nextY < 0) {
+          nextY = 0;
+          dy = Math.abs(dy);
+          hitWall = true;
+        }
 
-document.addEventListener('touchmove', (e) => {
-if (isDraggingPanel) {
-e.preventDefault();
-const touch = e.touches[0];
-panelX = touch.clientX - panelOffsetX;
-panelY = touch.clientY - panelOffsetY;
-controlPanel.style.left = `${panelX}px`;
-controlPanel.style.top = `${panelY}px`;
-controlPanel.style.right = 'auto';
-controlPanel.style.bottom = 'auto';
-} else if (isDraggingSprite) {
-e.preventDefault();
-const rect = canvas.getBoundingClientRect();
-const touch = e.touches[0];
-const touchX = touch.clientX - rect.left;
-const touchY = touch.clientY - rect.top;
-spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
-spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
-}
-});
+        if (hitWall) {
+          const angleChange = (Math.random() - 0.5) * Math.PI / 8;
+          const currentAngle = Math.atan2(dy, dx);
+          const newAngle = currentAngle + angleChange;
+          dx = Math.cos(newAngle) * speed;
+          dy = Math.sin(newAngle) * speed;
+        }
 
-document.addEventListener('mouseup', () => {
-if (isDraggingPanel) {
-isDraggingPanel = false;
-controlPanel.classList.remove('dragging');
-}
-if (isDraggingSprite) {
-isDraggingSprite = false;
-setNewTarget();
-}
-});
+        spriteX = nextX;
+        spriteY = nextY;
+      }
+    }
 
-document.addEventListener('touchend', () => {
-if (isDraggingPanel) {
-isDraggingPanel = false;
-controlPanel.classList.remove('dragging');
-}
-if (isDraggingSprite) {
-isDraggingSprite = false;
-setNewTarget();
-}
-});
+    if (trailAlways || isDraggingSprite) {
+      trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
+      applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    }
 
-document.addEventListener('touchcancel', () => {
-if (isDraggingPanel) {
-isDraggingPanel = false;
-controlPanel.classList.remove('dragging');
-}
-if (isDraggingSprite) {
-isDraggingSprite = false;
-setNewTarget();
-}
-});
+    ctx.drawImage(trailCanvas, 0, 0);
+    applyEffects(ctx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
 
-canvas.addEventListener('mousedown', (e) => {
-e.preventDefault();
-const rect = canvas.getBoundingClientRect();
-const mouseX = e.clientX - rect.left;
-const mouseY = e.clientY - rect.top;
-if (!isOverControlPanel(e.clientX, e.clientY)) {
-if (isMouseOverSprite(mouseX, mouseY)) {
-isDraggingSprite = true;
-} else {
-spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
-spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
-isDraggingSprite = true;
-}
-}
-});
+    if (effects.includes('hue')) {
+      hueValue = (hueValue + 2) % 360;
+    }
 
-canvas.addEventListener('touchstart', (e) => {
-e.preventDefault();
-const rect = canvas.getBoundingClientRect();
-const touch = e.touches[0];
-const touchX = touch.clientX - rect.left;
-const touchY = touch.clientY - rect.top;
-if (!isOverControlPanel(touch.clientX, touch.clientY)) {
-if (isMouseOverSprite(touchX, touchY)) {
-isDraggingSprite = true;
-} else {
-spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
-spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
-isDraggingSprite = true;
-}
-}
-});
+    if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter', 'haunt'].some(e => effects.includes(e))) {
+      effectTime += 0.1 * deltaTime * 60;
+    }
 
-document.getElementById('fx-list').addEventListener('click', (e) => {
-if (e.target.tagName === 'LI') {
-changeEffect(e.target);
-}
-});
+    window.animationFrameId = requestAnimationFrame(animate);
+  }
 
-window.addEventListener('resize', () => {
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-trailCanvas.width = canvas.width;
-trailCanvas.height = canvas.height;
-spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2));
-spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
-targetX = Math.max(0, Math.min(canvas.width - sprite.width * scale, targetX));
-targetY = Math.max(0, Math.min(canvas.height - sprite.height * scale, targetY));
-});
+  function isOverControlPanel(x, y) {
+    const rect = controlPanel.getBoundingClientRect();
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+  }
 
-window.onload = () => {
-panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
-panelY = window.innerHeight - controlPanel.offsetHeight - 15;
-controlPanel.style.left = `${panelX}px`;
-controlPanel.style.top = `${panelY}px`;
-setNewTarget();
-animate(performance.now());
-};
+  controlPanel.addEventListener('mousedown', (e) => {
+    const target = e.target;
+    if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
+      isDraggingPanel = true;
+      controlPanel.classList.add('dragging');
+      panelOffsetX = e.clientX - controlPanel.getBoundingClientRect().left;
+      panelOffsetY = e.clientY - controlPanel.getBoundingClientRect().top;
+    }
+  });
+
+  controlPanel.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const target = e.target;
+    if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
+      isDraggingPanel = true;
+      controlPanel.classList.add('dragging');
+      const touch = e.touches[0];
+      panelOffsetX = touch.clientX - controlPanel.getBoundingClientRect().left;
+      panelOffsetY = touch.clientY - controlPanel.getBoundingClientRect().top;
+    }
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDraggingPanel) {
+      e.preventDefault();
+      panelX = e.clientX - panelOffsetX;
+      panelY = e.clientY - panelOffsetY;
+      controlPanel.style.left = `${panelX}px`;
+      controlPanel.style.top = `${panelY}px`;
+      controlPanel.style.right = 'auto';
+      controlPanel.style.bottom = 'auto';
+    } else if (isDraggingSprite) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+      spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
+      spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
+    }
+  });
+
+  document.addEventListener('touchmove', (e) => {
+    if (isDraggingPanel) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      panelX = touch.clientX - panelOffsetX;
+      panelY = touch.clientY - panelOffsetY;
+      controlPanel.style.left = `${panelX}px`;
+      controlPanel.style.top = `${panelY}px`;
+      controlPanel.style.right = 'auto';
+      controlPanel.style.bottom = 'auto';
+    } else if (isDraggingSprite) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.touches[0];
+      const touchX = touch.clientX - rect.left;
+      const touchY = touch.clientY - rect.top;
+      spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
+      spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDraggingPanel) {
+      isDraggingPanel = false;
+      controlPanel.classList.remove('dragging');
+    }
+    if (isDraggingSprite) {
+      isDraggingSprite = false;
+      resetVelocity();
+    }
+  });
+
+  document.addEventListener('touchend', () => {
+    if (isDraggingPanel) {
+      isDraggingPanel = false;
+      controlPanel.classList.remove('dragging');
+    }
+    if (isDraggingSprite) {
+      isDraggingSprite = false;
+      resetVelocity();
+    }
+  });
+
+  document.addEventListener('touchcancel', () => {
+    if (isDraggingPanel) {
+      isDraggingPanel = false;
+      controlPanel.classList.remove('dragging');
+    }
+    if (isDraggingSprite) {
+      isDraggingSprite = false;
+      resetVelocity();
+    }
+  });
+
+  canvas.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    if (!isOverControlPanel(e.clientX, e.clientY)) {
+      if (isMouseOverSprite(mouseX, mouseY)) {
+        isDraggingSprite = true;
+        dx = 0;
+        dy = 0;
+      } else {
+        spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
+        spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
+        isDraggingSprite = true;
+      }
+    }
+  });
+
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    if (!isOverControlPanel(touch.clientX, touch.clientY)) {
+      if (isMouseOverSprite(touchX, touchY)) {
+        isDraggingSprite = true;
+        dx = 0;
+        dy = 0;
+      } else {
+        spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
+        spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
+        isDraggingSprite = true;
+      }
+    }
+  });
+
+  document.getElementById('fx-list').addEventListener('click', (e) => {
+    if (e.target.tagName === 'LI') {
+      changeEffect(e.target);
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    trailCanvas.width = canvas.width;
+    trailCanvas.height = canvas.height;
+    spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2));
+    spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
+  });
+
+  window.onload = () => {
+    panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
+    panelY = window.innerHeight - controlPanel.offsetHeight - 15;
+    controlPanel.style.left = `${panelX}px`;
+    controlPanel.style.top = `${panelY}px`;
+    animate(performance.now());
+  };
 </script>
 </body>
 </html>
