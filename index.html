@@ -82,7 +82,7 @@ text-decoration: none;
 cursor: pointer;
 }
 button, input[type="file"], select, input[type="checkbox"] {
-background: #111;
+background: rgba(0, 0, 0, 0.5);
 color: #0f0;
 border: 1px solid #0f0;
 font-family: 'Inter', sans-serif;
@@ -102,7 +102,7 @@ select {
 appearance: none;
 -webkit-appearance: none;
 -moz-appearance: none;
-background: #111 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%230f0"><polygon points="0,0 10,0 5,10"/></svg>') no-repeat right 5px center;
+background: rgba(0, 0, 0, 0.5) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%230f0"><polygon points="0,0 10,0 5,10"/></svg>') no-repeat right 5px center;
 background-size: 10px;
 max-height: 100px;
 overflow-y: auto;
@@ -178,7 +178,7 @@ flex-direction: column;
 gap: 3px;
 }
 #fx-list li {
-background: #111;
+background: rgba(0, 0, 0, 0.5);
 color: #0f0;
 border: 1px solid #0f0;
 font-size: 12.48px;
@@ -252,7 +252,6 @@ z-index: 1000;
 <li data-value="ghost">Ghost</li>
 <li data-value="flicker">Flicker</li>
 <li data-value="420">420</li>
-<licon: true,
 <li data-value="ripple">Ripple</li>
 <li data-value="distort">Distort</li>
 <li data-value="warp">Warp</li>
@@ -274,6 +273,18 @@ z-index: 1000;
 <div id="snapshot-message">no snapshots for now. only panta rhei 🧘</div>
 
 <script>
+// Custom PRNG with seed for better randomness control
+let seed = Date.now();
+function mulberry32(a) {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+}
+function random() {
+    return mulberry32(seed++);
+}
+
 const canvas = document.getElementById('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -288,8 +299,8 @@ let sprite = new Image();
 const defaultSprite = 'https://freepngimg.com/thumb/emoji/104116-face-emoji-3d-download-free-image.png';
 sprite.src = defaultSprite;
 let spriteX = canvas.width / 2, spriteY = canvas.height / 2;
-let dx = 0, dy = 0;
-const speed = 1.5;
+let targetX = spriteX, targetY = spriteY;
+const speed = 100; // Pixels per second
 let scale = 1;
 let effects = ['none'];
 let isDraggingSprite = false;
@@ -304,6 +315,8 @@ let currentBackgroundImage = new Image();
 currentBackgroundImage.src = defaultBackground;
 let trailAlways = false;
 let lastTime = performance.now();
+let timeSinceNewTarget = 0;
+const targetChangeInterval = 2; // Seconds between new random targets
 
 sprite.onload = () => {
 const ratio = 218.4 / Math.max(sprite.width, sprite.height);
@@ -311,9 +324,9 @@ sprite.width = 218.4;
 sprite.height *= ratio;
 spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
 spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-if (!isDraggingSprite) {
-resetVelocity();
-}
+targetX = spriteX;
+targetY = spriteY;
+seed = Date.now(); // Reset seed when loading new sprite
 };
 
 sprite.onerror = () => {
@@ -331,10 +344,13 @@ console.error('Failed to load default background');
 canvas.style.background = 'black';
 };
 
-function resetVelocity() {
-const angle = Math.random() * 2 * Math.PI;
-dx = Math.cos(angle) * speed;
-dy = Math.sin(angle) * speed;
+function setNewTarget() {
+const scaledWidth = sprite.width * scale;
+const scaledHeight = sprite.height * scale;
+targetX = random() * (canvas.width - scaledWidth);
+targetY = random() * (canvas.height - scaledHeight);
+timeSinceNewTarget = 0;
+seed = Date.now(); // Reseed for next random call
 }
 
 function loadSprite(event) {
@@ -402,7 +418,9 @@ sprite.width = 218.4;
 sprite.height = 218.4;
 spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
 spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-resetVelocity();
+targetX = spriteX;
+targetY = spriteY;
+seed = Date.now(); // Reset seed
 effects = ['none'];
 const fxList = document.getElementById('fx-list');
 Array.from(fxList.children).forEach(li => {
@@ -417,7 +435,7 @@ controlPanel.style.left = `${panelX}px`;
 controlPanel.style.top = `${panelY}px`;
 controlPanel.style.right = 'auto';
 controlPanel.style.bottom = 'auto';
-animate();
+animate(performance.now());
 }
 
 function toggleFxList() {
@@ -477,10 +495,10 @@ ctx.drawImage(img, -width / 2, -height / 2, width, height);
 } else if (effect === 'flicker') {
 ctx.translate(width / 2, height / 2);
 ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
-ctx.filter = `hue-rotate(${Math.random() * 60}deg)`;
+ctx.filter = `hue-rotate(${random() * 60}deg)`;
 ctx.globalAlpha = 0.9;
-const offsetX = (Math.random() - 0.5) * 10;
-const offsetY = (Math.random() - 0.5) * 10;
+const offsetX = (random() - 0.5) * 10;
+const offsetY = (random() - 0.5) * 10;
 ctx.drawImage(img, offsetX - width / 2, offsetY - height / 2, width, height);
 } else if (effect === '420') {
 ctx.translate(width / 2, height / 2);
@@ -532,8 +550,8 @@ ctx.globalAlpha = 0.7;
 ctx.drawImage(img, -width / 2, -height / 2, width, height);
 } else if (effect === 'static') {
 ctx.filter = `contrast(200%) brightness(120%)`;
-ctx.globalAlpha = Math.random() * 0.3 + 0.7;
-const noise = Math.random() * 10 - 5;
+ctx.globalAlpha = random() * 0.3 + 0.7;
+const noise = random() * 10 - 5;
 ctx.drawImage(img, noise, noise, width, height);
 } else if (effect === 'ghost') {
 ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
@@ -557,9 +575,9 @@ ctx.drawImage(img, -width / 2, -height / 2, width, height);
 ctx.translate(width / 2, height / 2);
 for (let i = 0; i < 3; i++) {
 ctx.save();
-ctx.rotate(Math.random() * 0.2 - 0.1);
-ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
-ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+ctx.rotate(random() * 0.2 - 0.1);
+ctx.translate((random() - 0.5) * 15, (random() - 0.5) * 15);
+ctx.globalAlpha = 0.6 + random() * 0.4;
 ctx.drawImage(img, -width / 2, -height / 2, width, height);
 ctx.restore();
 }
@@ -570,8 +588,8 @@ ctx.drawImage(img, -width / 2, -height / 2, width, height);
 } else if (effect === 'haunt') {
 ctx.filter = `grayscale(80%) blur(3px) contrast(150%)`;
 ctx.globalAlpha = 0.4 + Math.abs(Math.sin(effectTime * 3)) * 0.3;
-const offsetX = (Math.random() - 0.5) * 15;
-const offsetY = (Math.random() - 0.5) * 15;
+const offsetX = (random() - 0.5) * 15;
+const offsetY = (random() - 0.5) * 15;
 ctx.translate(offsetX, offsetY);
 ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
 ctx.drawImage(img, -width / 2, -height / 2, width, height);
@@ -611,7 +629,7 @@ ctx.drawImage(img, 0, 0, width, height);
 ctx.filter = `hue-rotate(${hueValue}deg)`;
 ctx.drawImage(img, 0, 0, width, height);
 } else if (effect === 'randomHue') {
-ctx.filter = `hue-rotate(${Math.random() * 360}deg)`;
+ctx.filter = `hue-rotate(${random() * 360}deg)`;
 ctx.drawImage(img, 0, 0, width, height);
 } else if (effect === 'contrast') {
 ctx.filter = 'contrast(300%)';
@@ -644,33 +662,31 @@ return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= sprite
 function animate(currentTime) {
 const deltaTime = (currentTime - lastTime) / 1000; // Time since last frame in seconds
 lastTime = currentTime;
+timeSinceNewTarget += deltaTime;
 
 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 if (!isDraggingSprite) {
 const scaledWidth = sprite.width * scale;
 const scaledHeight = sprite.height * scale;
-let nextX = spriteX + dx * deltaTime * 60; // Normalize speed across frame rates
-let nextY = spriteY + dy * deltaTime * 60;
 
-// Boundary checks with clamping to prevent overshooting
-if (nextX + scaledWidth > canvas.width) {
-nextX = canvas.width - scaledWidth;
-dx = -dx; // Reflect velocity
-} else if (nextX < 0) {
-nextX = 0;
-dx = -dx;
-}
-if (nextY + scaledHeight > canvas.height) {
-nextY = canvas.height - scaledHeight;
-dy = -dy;
-} else if (nextY < 0) {
-nextY = 0;
-dy = -dy;
+// Check if it's time to pick a new target or if sprite is close to current target
+const distToTarget = Math.hypot(spriteX - targetX, spriteY - targetY);
+if (timeSinceNewTarget >= targetChangeInterval || distToTarget < 10) {
+setNewTarget();
 }
 
-spriteX = nextX;
-spriteY = nextY;
+// Move toward target with linear interpolation
+const moveSpeed = speed * deltaTime;
+const dx = targetX - spriteX;
+const dy = targetY - spriteY;
+const dist = Math.hypot(dx, dy);
+if (dist > 0.1) { // Avoid jittering when very close
+const moveX = (dx / dist) * Math.min(moveSpeed, dist);
+const moveY = (dy / dist) * Math.min(moveSpeed, dist);
+spriteX = Math.max(0, Math.min(canvas.width - scaledWidth, spriteX + moveX));
+spriteY = Math.max(0, Math.min(canvas.height - scaledHeight, spriteY + moveY));
+}
 }
 
 if (trailAlways || isDraggingSprite) {
@@ -765,7 +781,7 @@ controlPanel.classList.remove('dragging');
 }
 if (isDraggingSprite) {
 isDraggingSprite = false;
-resetVelocity();
+setNewTarget();
 }
 });
 
@@ -776,7 +792,7 @@ controlPanel.classList.remove('dragging');
 }
 if (isDraggingSprite) {
 isDraggingSprite = false;
-resetVelocity();
+setNewTarget();
 }
 });
 
@@ -787,7 +803,7 @@ controlPanel.classList.remove('dragging');
 }
 if (isDraggingSprite) {
 isDraggingSprite = false;
-resetVelocity();
+setNewTarget();
 }
 });
 
@@ -799,8 +815,6 @@ const mouseY = e.clientY - rect.top;
 if (!isOverControlPanel(e.clientX, e.clientY)) {
 if (isMouseOverSprite(mouseX, mouseY)) {
 isDraggingSprite = true;
-dx = 0;
-dy = 0;
 } else {
 spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
 spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
@@ -818,8 +832,6 @@ const touchY = touch.clientY - rect.top;
 if (!isOverControlPanel(touch.clientX, touch.clientY)) {
 if (isMouseOverSprite(touchX, touchY)) {
 isDraggingSprite = true;
-dx = 0;
-dy = 0;
 } else {
 spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
 spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
@@ -841,6 +853,8 @@ trailCanvas.width = canvas.width;
 trailCanvas.height = canvas.height;
 spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2));
 spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
+targetX = Math.max(0, Math.min(canvas.width - sprite.width * scale, targetX));
+targetY = Math.max(0, Math.min(canvas.height - sprite.height * scale, targetY));
 });
 
 window.onload = () => {
@@ -848,6 +862,7 @@ panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
 panelY = window.innerHeight - controlPanel.offsetHeight - 15;
 controlPanel.style.left = `${panelX}px`;
 controlPanel.style.top = `${panelY}px`;
+setNewTarget();
 animate(performance.now());
 };
 </script>
