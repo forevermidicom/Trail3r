@@ -101,6 +101,7 @@
       width: 16px;
       height: 16px;
       position: relative;
+      margin: 0 auto; /* Center the checkbox */
     }
     input[type="checkbox"]#trail-always:checked {
       background: #0f0;
@@ -121,7 +122,7 @@
       accent-color: #0f0;
       cursor: pointer;
       touch-action: manipulation;
-      margin-top: 10px;
+      margin: 4px 0; /* Adjusted to minimize vertical space */
       pointer-events: auto;
     }
     input[type="range"]::-webkit-slider-runnable-track {
@@ -163,6 +164,13 @@
       text-shadow: 0 0 3px rgba(0, 255, 0, 0.3);
       width: calc(50% - 1.5px);
       pointer-events: none;
+    }
+    .scale-trail-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      width: 100%;
     }
     #fx-list {
       position: absolute;
@@ -284,10 +292,12 @@
       <li data-value="clone">Clone</li>
       <li data-value="eraser">Eraser</li>
     </ul>
-    <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
-    <label for="scale">Scale: <span id="scale-value">1</span></label>
-    <input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
-    <label for="trail-always">Always Trail</label>
+    <div class="scale-trail-controls">
+      <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
+      <label for="scale">Scale: <span id="scale-value">1</span></label>
+      <input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
+      <label for="trail-always">Always Trail</label>
+    </div>
   </div>
   <div id="snapshot-message">Snapshot captured! Downloading...</div>
   <script>
@@ -542,6 +552,9 @@
         } else {
           effects = effects.filter(effect => effect !== value);
           element.classList.remove('selected');
+          if (value === 'clone') {
+            clonedSprite = null; // Clear cloned sprite when clone effect is deselected
+          }
           if (effects.length === 0) {
             effects = ['none'];
             document.querySelector('#fx-list li[data-value="none"]').classList.add('selected');
@@ -1177,7 +1190,6 @@
           touchMoved = true;
           fxList.scrollTop -= (touchY - touchStartY);
           touchStartY = touchY;
-          e.preventDefault();
         }
       }
     });
