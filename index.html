@@ -28,7 +28,7 @@
     }
     #control-panel {
       position: absolute;
-      bottom: 15px;
+      bottom: 1.35px;
       width: 218.4px;
       background: rgba(0, 0, 0, 0.6);
       padding: 7.8px;
@@ -346,885 +346,885 @@
     let touchStartY = 0;
     let touchMoved = false;
 
-    function setInitialPanelPosition() {
-      const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
-      panelX = (window.innerWidth - controlPanel.offsetWidth / scaleFactor) / 2;
-      panelY = window.innerHeight - controlPanel.offsetHeight / scaleFactor - 15;
-      controlPanel.style.left = `${panelX}px`;
-      controlPanel.style.top = `${panelY}px`;
-      controlPanel.style.right = 'auto';
-      controlPanel.style.bottom = 'auto';
-    }
+function setInitialPanelPosition() {
+  const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
+  panelX = (window.innerWidth - controlPanel.offsetWidth / scaleFactor) / 2;
+  panelY = window.innerHeight - controlPanel.offsetHeight / scaleFactor - 1.35;
+  controlPanel.style.left = `${panelX}px`;
+  controlPanel.style.top = `${panelY}px`;
+  controlPanel.style.right = 'auto';
+  controlPanel.style.bottom = 'auto';
+}
 
-    function initializeSprite() {
-      if (sprite.width && sprite.height) {
-        const ratio = 218.4 / Math.max(sprite.width, sprite.height);
-        sprite.width = sprite.width * ratio;
-        sprite.height = sprite.height * ratio;
-      } else {
-        sprite.width = 218.4;
-        sprite.height = 218.4;
-      }
-      spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
-      spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
-      cubeX = spriteX;
-      cubeY = spriteY;
-      if (!isDraggingSprite) {
-        resetVelocity();
-        resetCubeVelocity();
-      }
-    }
+function initializeSprite() {
+  if (sprite.width && sprite.height) {
+    const ratio = 218.4 / Math.max(sprite.width, sprite.height);
+    sprite.width = sprite.width * ratio;
+    sprite.height = sprite.height * ratio;
+  } else {
+    sprite.width = 218.4;
+    sprite.height = 218.4;
+  }
+  spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
+  spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
+  cubeX = spriteX;
+  cubeY = spriteY;
+  if (!isDraggingSprite) {
+    resetVelocity();
+    resetCubeVelocity();
+  }
+}
 
-    function loadSpriteImage(src) {
-      sprite = new Image();
-      sprite.crossOrigin = "anonymous";
-      sprite.onload = initializeSprite;
-      sprite.onerror = () => {
-        console.error('Failed to load sprite. Using fallback.');
-        sprite.src = fallbackSprite;
-      };
-      sprite.src = src;
-    }
+function loadSpriteImage(src) {
+  sprite = new Image();
+  sprite.crossOrigin = "anonymous";
+  sprite.onload = initializeSprite;
+  sprite.onerror = () => {
+    console.error('Failed to load sprite. Using fallback.');
+    sprite.src = fallbackSprite;
+  };
+  sprite.src = src;
+}
 
-    sprite.onload = initializeSprite;
-    sprite.onerror = () => {
-      console.error('Failed to load sprite. Using fallback.');
-      sprite.src = fallbackSprite;
+sprite.onload = initializeSprite;
+sprite.onerror = () => {
+  console.error('Failed to load sprite. Using fallback.');
+  sprite.src = fallbackSprite;
+};
+sprite.src = defaultSprite;
+
+function resetVelocity() {
+  const angle = Math.random() * 2 * Math.PI;
+  dx = Math.cos(angle) * speed;
+  dy = Math.sin(angle) * speed;
+  changeDirectionTime = performance.now() + Math.random() * 2000 + 1000;
+}
+
+function resetCubeVelocity() {
+  const angle = Math.random() * 2 * Math.PI;
+  cubeDx = Math.cos(angle) * speed;
+  cubeDy = Math.sin(angle) * speed;
+  cubeChangeDirectionTime = performance.now() + Math.random() * 2000 + 1000;
+}
+
+function loadSprite(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const url = URL.createObjectURL(file);
+    loadSpriteImage(url);
+    clonedSprite = null;
+    document.getElementById('sprite-upload').value = '';
+  } else {
+    alert('Please select an image file for the sprite.');
+  }
+}
+
+function loadBackground(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const bg = new Image();
+    bg.crossOrigin = "anonymous";
+    bg.src = URL.createObjectURL(file);
+    bg.onload = () => {
+      currentBackgroundImage = bg;
+      canvas.style.background = `url(${bg.src}) no-repeat center`;
+      canvas.style.backgroundSize = 'cover';
+      document.getElementById('bg-upload').value = '';
     };
-    sprite.src = defaultSprite;
+    bg.onerror = () => {
+      alert('Failed to load background image. Please try another file.');
+    };
+  } else {
+    alert('Please select an image file for the background.');
+  }
+}
 
-    function resetVelocity() {
-      const angle = Math.random() * 2 * Math.PI;
-      dx = Math.cos(angle) * speed;
-      dy = Math.sin(angle) * speed;
-      changeDirectionTime = performance.now() + Math.random() * 2000 + 1000;
+function handleSnapshot() {
+  const snapshotMessage = document.getElementById('snapshot-message');
+  snapshotMessage.style.display = 'block';
+  setTimeout(() => {
+    snapshotMessage.style.display = 'none';
+  }, 2000);
+  takeCanvasSnapshot();
+}
+
+function takeCanvasSnapshot() {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = window.innerWidth;
+  tempCanvas.height = window.innerHeight;
+  const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true, alpha: true });
+  tempCtx.fillStyle = 'black';
+  tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  if (currentBackgroundImage && currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
+    const canvasAspect = tempCanvas.width / tempCanvas.height;
+    const imgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
+    let drawWidth, drawHeight, offsetX, offsetY;
+    if (imgAspect > canvasAspect) {
+      drawHeight = tempCanvas.height;
+      drawWidth = drawHeight * imgAspect;
+      offsetX = (tempCanvas.width - drawWidth) / 2;
+      offsetY = 0;
+    } else {
+      drawWidth = tempCanvas.width;
+      drawHeight = drawWidth / imgAspect;
+      offsetX = 0;
+      offsetY = (tempCanvas.height - drawHeight) / 2;
     }
+    tempCtx.drawImage(currentBackgroundImage, offsetX, offsetY, drawWidth, drawHeight);
+  }
+  tempCtx.drawImage(trailCanvas, 0, 0);
+  applyEffects(tempCtx, clonedSprite || sprite, effects.includes('x6') ? cubeX : spriteX, effects.includes('x6') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
+  try {
+    const dataURL = tempCanvas.toDataURL('image/png', 1.0);
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = 'trail3r_snapshot.png';
+    a.click();
+  } catch (error) {
+    console.error('Failed to generate snapshot:', error);
+    alert('Snapshot failed. Please ensure images are loaded and try again.');
+  }
+}
 
-    function resetCubeVelocity() {
-      const angle = Math.random() * 2 * Math.PI;
-      cubeDx = Math.cos(angle) * speed;
-      cubeDy = Math.sin(angle) * speed;
-      cubeChangeDirectionTime = performance.now() + Math.random() * 2000 + 1000;
-    }
+function resetCanvas() {
+  if (window.animationFrameId) {
+    cancelAnimationFrame(window.animationFrameId);
+  }
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+  canvas.style.background = '#000';
+  currentBackgroundImage = null;
+  clonedSprite = null;
+  scale = 1;
+  document.getElementById('scale').value = 1;
+  document.getElementById('scale-value').textContent = '1';
+  effects = ['none'];
+  hueValue = 0;
+  effectTime = 0;
+  trailAlways = false;
+  document.getElementById('trail-always').checked = false;
+  document.getElementById('snapshot-message').style.display = 'none';
+  setInitialPanelPosition();
+  const fxList = document.getElementById('fx-list');
+  fxList.style.display = 'none';
+  document.getElementById('fx-button').textContent = 'FX';
+  Array.from(fxList.children).forEach(li => {
+    li.classList.toggle('selected', li.dataset.value === 'none');
+  });
+  sprite = new Image();
+  sprite.crossOrigin = "anonymous";
+  sprite.onload = initializeSprite;
+  sprite.onerror = () => {
+    console.error('Failed to load sprite. Using fallback.');
+    sprite.src = fallbackSprite;
+  };
+  sprite.src = defaultSprite;
+  spriteX = canvas.width / 2 - (218.4 * scale) / 2;
+  spriteY = canvas.height / 2 - (218.4 * scale) / 2;
+  cubeX = spriteX;
+  cubeY = spriteY;
+  resetVelocity();
+  resetCubeVelocity();
+  cubeRotation = { x: 0, y: 0, z: 0 };
+  cubeVelocity = { x: Math.random() * 0.5 - 0.25, y: Math.random() * 0.5 - 0.25, z: Math.random() * 0.5 - 0.25 };
+  document.getElementById('sprite-upload').value = '';
+  document.getElementById('bg-upload').value = '';
+  animate(performance.now());
+}
 
-    function loadSprite(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const url = URL.createObjectURL(file);
-        loadSpriteImage(url);
-        clonedSprite = null;
-        document.getElementById('sprite-upload').value = '';
-      } else {
-        alert('Please select an image file for the sprite.');
-      }
-    }
+function toggleFxList() {
+  const fxList = document.getElementById('fx-list');
+  const fxButton = document.getElementById('fx-button');
+  if (fxList.style.display === 'flex') {
+    fxList.style.display = 'none';
+    fxButton.textContent = 'FX';
+  } else {
+    fxList.style.display = 'flex';
+    fxButton.textContent = 'CLOSE FX';
+  }
+}
 
-    function loadBackground(event) {
-      const file = event.target.files[0];
-      if (file) {
-        const bg = new Image();
-        bg.crossOrigin = "anonymous";
-        bg.src = URL.createObjectURL(file);
-        bg.onload = () => {
-          currentBackgroundImage = bg;
-          canvas.style.background = `url(${bg.src}) no-repeat center`;
-          canvas.style.backgroundSize = 'cover';
-          document.getElementById('bg-upload').value = '';
-        };
-        bg.onerror = () => {
-          alert('Failed to load background image. Please try another file.');
-        };
-      } else {
-        alert('Please select an image file for the background.');
-      }
-    }
-
-    function handleSnapshot() {
-      const snapshotMessage = document.getElementById('snapshot-message');
-      snapshotMessage.style.display = 'block';
-      setTimeout(() => {
-        snapshotMessage.style.display = 'none';
-      }, 2000);
-      takeCanvasSnapshot();
-    }
-
-    function takeCanvasSnapshot() {
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = window.innerWidth;
-      tempCanvas.height = window.innerHeight;
-      const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true, alpha: true });
-      tempCtx.fillStyle = 'black';
-      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-      if (currentBackgroundImage && currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
-        const canvasAspect = tempCanvas.width / tempCanvas.height;
-        const imgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
-        let drawWidth, drawHeight, offsetX, offsetY;
-        if (imgAspect > canvasAspect) {
-          drawHeight = tempCanvas.height;
-          drawWidth = drawHeight * imgAspect;
-          offsetX = (tempCanvas.width - drawWidth) / 2;
-          offsetY = 0;
-        } else {
-          drawWidth = tempCanvas.width;
-          drawHeight = drawWidth / imgAspect;
-          offsetX = 0;
-          offsetY = (tempCanvas.height - drawHeight) / 2;
-        }
-        tempCtx.drawImage(currentBackgroundImage, offsetX, offsetY, drawWidth, drawHeight);
-      }
-      tempCtx.drawImage(trailCanvas, 0, 0);
-      applyEffects(tempCtx, clonedSprite || sprite, effects.includes('x6') ? cubeX : spriteX, effects.includes('x6') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
-      try {
-        const dataURL = tempCanvas.toDataURL('image/png', 1.0);
-        const a = document.createElement('a');
-        a.href = dataURL;
-        a.download = 'trail3r_snapshot.png';
-        a.click();
-      } catch (error) {
-        console.error('Failed to generate snapshot:', error);
-        alert('Snapshot failed. Please ensure images are loaded and try again.');
-      }
-    }
-
-    function resetCanvas() {
-      if (window.animationFrameId) {
-        cancelAnimationFrame(window.animationFrameId);
-      }
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
-      canvas.style.background = '#000';
-      currentBackgroundImage = null;
-      clonedSprite = null;
-      scale = 1;
-      document.getElementById('scale').value = 1;
-      document.getElementById('scale-value').textContent = '1';
+function changeEffect(element) {
+  const value = element.dataset.value;
+  if (effects.includes(value)) {
+    if (value === 'randomixer') {
       effects = ['none'];
-      hueValue = 0;
-      effectTime = 0;
-      trailAlways = false;
-      document.getElementById('trail-always').checked = false;
-      document.getElementById('snapshot-message').style.display = 'none';
-      setInitialPanelPosition();
-      const fxList = document.getElementById('fx-list');
-      fxList.style.display = 'none';
-      document.getElementById('fx-button').textContent = 'FX';
-      Array.from(fxList.children).forEach(li => {
+      clonedSprite = null;
+      Array.from(document.getElementById('fx-list').children).forEach(li => {
         li.classList.toggle('selected', li.dataset.value === 'none');
       });
-      sprite = new Image();
-      sprite.crossOrigin = "anonymous";
-      sprite.onload = initializeSprite;
-      sprite.onerror = () => {
-        console.error('Failed to load sprite. Using fallback.');
-        sprite.src = fallbackSprite;
-      };
-      sprite.src = defaultSprite;
-      spriteX = canvas.width / 2 - (218.4 * scale) / 2;
-      spriteY = canvas.height / 2 - (218.4 * scale) / 2;
-      cubeX = spriteX;
-      cubeY = spriteY;
-      resetVelocity();
-      resetCubeVelocity();
-      cubeRotation = { x: 0, y: 0, z: 0 };
-      cubeVelocity = { x: Math.random() * 0.5 - 0.25, y: Math.random() * 0.5 - 0.25, z: Math.random() * 0.5 - 0.25 };
-      document.getElementById('sprite-upload').value = '';
-      document.getElementById('bg-upload').value = '';
-      animate(performance.now());
-    }
-
-    function toggleFxList() {
-      const fxList = document.getElementById('fx-list');
-      const fxButton = document.getElementById('fx-button');
-      if (fxList.style.display === 'flex') {
-        fxList.style.display = 'none';
-        fxButton.textContent = 'FX';
-      } else {
-        fxList.style.display = 'flex';
-        fxButton.textContent = 'CLOSE FX';
+    } else {
+      effects = effects.filter(effect => effect !== value);
+      element.classList.remove('selected');
+      if (value === 'clone') {
+        clonedSprite = null; // Clear cloned sprite when clone effect is deselected
+      }
+      if (effects.length === 0) {
+        effects = ['none'];
+        document.querySelector('#fx-list li[data-value="none"]').classList.add('selected');
       }
     }
-
-    function changeEffect(element) {
-      const value = element.dataset.value;
-      if (effects.includes(value)) {
-        if (value === 'randomixer') {
-          effects = ['none'];
-          clonedSprite = null;
-          Array.from(document.getElementById('fx-list').children).forEach(li => {
-            li.classList.toggle('selected', li.dataset.value === 'none');
-          });
-        } else {
-          effects = effects.filter(effect => effect !== value);
-          element.classList.remove('selected');
-          if (value === 'clone') {
-            clonedSprite = null; // Clear cloned sprite when clone effect is deselected
-          }
-          if (effects.length === 0) {
-            effects = ['none'];
-            document.querySelector('#fx-list li[data-value="none"]').classList.add('selected');
-          }
-        }
-      } else {
-        if (value === 'none') {
-          effects = ['none'];
-          clonedSprite = null;
-          Array.from(document.getElementById('fx-list').children).forEach(li => {
-            li.classList.toggle('selected', li.dataset.value === 'none');
-          });
-        } else {
-          effects = effects.filter(effect => effect !== 'none');
-          effects.push(value);
-          element.classList.add('selected');
-          document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
-        }
-      }
-    }
-
-    function changeScale(value) {
-      scale = parseFloat(value);
-      document.getElementById('scale-value').textContent = value;
-    }
-
-    function toggleTrailAlways(checked) {
-      trailAlways = checked;
-    }
-
-    function applyRandomixer() {
-      const now = performance.now();
-      if (now - lastRandomixerTime < randomixerInterval) return;
-      lastRandomixerTime = now;
-      const fxList = Array.from(document.getElementById('fx-list').children);
-      const allEffects = fxList.map(li => li.dataset.value).filter(v => v !== 'none' && v !== 'randomixer');
-      const numEffects = Math.floor(Math.random() * 3) + 1;
-      effects = effects.filter(effect => effect === 'randomixer');
-      fxList.forEach(li => li.classList.remove('selected'));
+  } else {
+    if (value === 'none') {
+      effects = ['none'];
+      clonedSprite = null;
+      Array.from(document.getElementById('fx-list').children).forEach(li => {
+        li.classList.toggle('selected', li.dataset.value === 'none');
+      });
+    } else {
+      effects = effects.filter(effect => effect !== 'none');
+      effects.push(value);
+      element.classList.add('selected');
       document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
-      document.querySelector('#fx-list li[data-value="randomixer"]').classList.add('selected');
-      for (let i = 0; i < numEffects; i++) {
-        const randomEffect = allEffects[Math.floor(Math.random() * allEffects.length)];
-        if (!effects.includes(randomEffect)) {
-          effects.push(randomEffect);
-          document.querySelector(`#fx-list li[data-value="${randomEffect}"]`).classList.add('selected');
-        }
-      }
     }
+  }
+}
 
-    function applyx6(ctx, img, x, y, width, height) {
-      const cubeSize = Math.min(width, height);
-      const halfSize = cubeSize / 2;
-      const perspective = 1000;
-      ctx.save();
-      ctx.translate(x + halfSize, y + halfSize);
-      const faces = [
-        { x: 0, y: 0, z: halfSize, rotX: 0, rotY: 0 },
-        { x: 0, y: 0, z: -halfSize, rotX: Math.PI, rotY: 0 },
-        { x: halfSize, y: 0, z: 0, rotX: 0, rotY: Math.PI / 2 },
-        { x: -halfSize, y: 0, z: 0, rotX: 0, rotY: -Math.PI / 2 },
-        { x: 0, y: -halfSize, z: 0, rotX: -Math.PI / 2, rotY: 0 },
-        { x: 0, y: halfSize, z: 0, rotX: Math.PI / 2, rotY: 0 }
-      ];
-      faces.sort((a, b) => {
-        const aPos = { x: a.x, y: a.y, z: a.z };
-        const bPos = { x: b.x, y: b.y, z: b.z };
-        applyRotation(aPos, cubeRotation);
-        applyRotation(bPos, cubeRotation);
-        return bPos.z - aPos.z;
-      });
-      faces.forEach(face => {
+function changeScale(value) {
+  scale = parseFloat(value);
+  document.getElementById('scale-value').textContent = value;
+}
+
+function toggleTrailAlways(checked) {
+  trailAlways = checked;
+}
+
+function applyRandomixer() {
+  const now = performance.now();
+  if (now - lastRandomixerTime < randomixerInterval) return;
+  lastRandomixerTime = now;
+  const fxList = Array.from(document.getElementById('fx-list').children);
+  const allEffects = fxList.map(li => li.dataset.value).filter(v => v !== 'none' && v !== 'randomixer');
+  const numEffects = Math.floor(Math.random() * 3) + 1;
+  effects = effects.filter(effect => effect === 'randomixer');
+  fxList.forEach(li => li.classList.remove('selected'));
+  document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
+  document.querySelector('#fx-list li[data-value="randomixer"]').classList.add('selected');
+  for (let i = 0; i < numEffects; i++) {
+    const randomEffect = allEffects[Math.floor(Math.random() * allEffects.length)];
+    if (!effects.includes(randomEffect)) {
+      effects.push(randomEffect);
+      document.querySelector(`#fx-list li[data-value="${randomEffect}"]`).classList.add('selected');
+    }
+  }
+}
+
+function applyx6(ctx, img, x, y, width, height) {
+  const cubeSize = Math.min(width, height);
+  const halfSize = cubeSize / 2;
+  const perspective = 1000;
+  ctx.save();
+  ctx.translate(x + halfSize, y + halfSize);
+  const faces = [
+    { x: 0, y: 0, z: halfSize, rotX: 0, rotY: 0 },
+    { x: 0, y: 0, z: -halfSize, rotX: Math.PI, rotY: 0 },
+    { x: halfSize, y: 0, z: 0, rotX: 0, rotY: Math.PI / 2 },
+    { x: -halfSize, y: 0, z: 0, rotX: 0, rotY: -Math.PI / 2 },
+    { x: 0, y: -halfSize, z: 0, rotX: -Math.PI / 2, rotY: 0 },
+    { x: 0, y: halfSize, z: 0, rotX: Math.PI / 2, rotY: 0 }
+  ];
+  faces.sort((a, b) => {
+    const aPos = { x: a.x, y: a.y, z: a.z };
+    const bPos = { x: b.x, y: b.y, z: b.z };
+    applyRotation(aPos, cubeRotation);
+    applyRotation(bPos, cubeRotation);
+    return bPos.z - aPos.z;
+  });
+  faces.forEach(face => {
+    ctx.save();
+    apply3DTransform(ctx, face.x, face.y, face.z, face.rotX, face.rotY, cubeRotation, perspective);
+    ctx.beginPath();
+    ctx.rect(-halfSize, -halfSize, cubeSize, cubeSize);
+    ctx.clip();
+    ctx.drawImage(img, -halfSize, -halfSize, cubeSize, cubeSize);
+    ctx.restore();
+  });
+  ctx.restore();
+}
+
+function applyRotation(point, rotation) {
+  let { x, y, z } = point;
+  let tempY = y;
+  y = tempY * Math.cos(rotation.x) - z * Math.sin(rotation.x);
+  z = tempY * Math.sin(rotation.x) + z * Math.cos(rotation.x);
+  let tempX = x;
+  x = tempX * Math.cos(rotation.y) - z * Math.sin(rotation.y);
+  z = tempX * Math.sin(rotation.y) + z * Math.cos(rotation.y);
+  tempX = x;
+  x = tempX * Math.cos(rotation.z) - y * Math.sin(rotation.z);
+  y = tempX * Math.sin(rotation.z) + y * Math.cos(rotation.z);
+  return { x, y, z };
+}
+
+function apply3DTransform(ctx, x, y, z, rotX, rotY, rotation, perspective) {
+  let pos = { x, y, z };
+  pos = applyRotation(pos, rotation);
+  const scaleFactor = perspective / (perspective + pos.z);
+  ctx.translate(pos.x * scaleFactor, pos.y * scaleFactor);
+  ctx.scale(scaleFactor, scaleFactor);
+  ctx.rotate(rotX);
+  ctx.rotate(rotY);
+  ctx.rotate(rotation.z);
+}
+
+function captureCloneSample(x, y, width, height) {
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = width;
+  tempCanvas.height = height;
+  const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true, alpha: true });
+  tempCtx.fillStyle = 'transparent';
+  tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  if (currentBackgroundImage && currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
+    const canvasAspect = canvas.width / canvas.height;
+    const imgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
+    let drawWidth, drawHeight, offsetX, offsetY;
+    if (imgAspect > canvasAspect) {
+      drawHeight = canvas.height;
+      drawWidth = drawHeight * imgAspect;
+      offsetX = (canvas.width - drawWidth) / 2;
+      offsetY = 0;
+    } else {
+      drawWidth = canvas.width;
+      drawHeight = drawWidth / imgAspect;
+      offsetX = 0;
+      offsetY = (canvas.height - drawHeight) / 2;
+    }
+    const sx = (x - offsetX) * (currentBackgroundImage.width / drawWidth);
+    const sy = (y - offsetY) * (currentBackgroundImage.height / drawHeight);
+    const sWidth = width * (currentBackgroundImage.width / drawWidth);
+    const sHeight = height * (currentBackgroundImage.height / drawHeight);
+    tempCtx.drawImage(currentBackgroundImage, sx, sy, sWidth, sHeight, 0, 0, width, height);
+  }
+  tempCtx.drawImage(trailCanvas, x, y, width, height, 0, 0, width, height);
+  tempCtx.globalCompositeOperation = 'destination-in';
+  tempCtx.drawImage(sprite, 0, 0, width, height);
+  tempCtx.globalCompositeOperation = 'source-over';
+  clonedSprite = new Image();
+  clonedSprite.onload = () => {
+    clonedSprite.width = width;
+    clonedSprite.height = height;
+  };
+  clonedSprite.src = tempCanvas.toDataURL('image/png');
+}
+
+function applyEffects(ctx, img, x, y, width, height) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (effects.includes('randomixer')) {
+    applyRandomixer();
+  }
+  if (effects.includes('x6')) {
+    applyx6(ctx, img, 0, 0, width, height);
+    ctx.restore();
+    return;
+  }
+  effects.forEach(effect => {
+    ctx.save();
+    if (effect === 'distort') {
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(1 + Math.sin(effectTime) * 0.2, 1 + Math.cos(effectTime) * 0.2);
+      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+    } else if (effect === 'flicker') {
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
+      ctx.filter = `hue-rotate(${Math.random() * 60}deg)`;
+      ctx.globalAlpha = 0.9;
+      const offsetX = (Math.random() - 0.5) * 10;
+      const offsetY = (Math.random() - 0.5) * 10;
+      ctx.drawImage(img, offsetX - width / 2, offsetY - width / 2, width, height);
+    } else if (effect === '420') {
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(Math.sin(effectTime) * Math.PI);
+      ctx.scale(1 + Math.sin(effectTime * 2) * 0.3, 1 + Math.cos(effectTime * 2) * 0.3);
+      ctx.filter = `hue-rotate(${Math.sin(effectTime) * 360}deg) saturate(200%) contrast(150%)`;
+      ctx.globalAlpha = 0.8 + Math.sin(effectTime * 3) * 0.2;
+      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+    } else if (effect === 'vortex') {
+      ctx.translate(width / 2, height / 2);
+      ctx.rotate(Math.sin(effectTime * 0.5) * Math.PI);
+      ctx.scale(1 + Math.sin(effectTime) * 0.1, 1 + Math.cos(effectTime) * 0.1);
+      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+    } else if (effect === 'ripple') {
+      const offset = Math.sin(effectTime * 2) * 10;
+      ctx.translate(offset, offset);
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'neon') {
+      ctx.filter = 'contrast(200%) brightness(150%) drop-shadow(0 0 10px #0f0)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'fractal') {
+      ctx.translate(width / 2, height / 2);
+      for (let i = 0; i < 4; i++) {
         ctx.save();
-        apply3DTransform(ctx, face.x, face.y, face.z, face.rotX, face.rotY, cubeRotation, perspective);
-        ctx.beginPath();
-        ctx.rect(-halfSize, -halfSize, cubeSize, cubeSize);
-        ctx.clip();
-        ctx.drawImage(img, -halfSize, -halfSize, cubeSize, cubeSize);
+        ctx.scale(0.7 - i * 0.15, 0.7 - i * 0.15);
+        ctx.rotate((Math.PI / 4) * (i + Math.sin(effectTime * 0.5)));
+        ctx.globalAlpha = 1.0 - i * 0.2;
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
         ctx.restore();
-      });
-      ctx.restore();
-    }
-
-    function applyRotation(point, rotation) {
-      let { x, y, z } = point;
-      let tempY = y;
-      y = tempY * Math.cos(rotation.x) - z * Math.sin(rotation.x);
-      z = tempY * Math.sin(rotation.x) + z * Math.cos(rotation.x);
-      let tempX = x;
-      x = tempX * Math.cos(rotation.y) - z * Math.sin(rotation.y);
-      z = tempX * Math.sin(rotation.y) + z * Math.cos(rotation.y);
-      tempX = x;
-      x = tempX * Math.cos(rotation.z) - y * Math.sin(rotation.z);
-      y = tempX * Math.sin(rotation.z) + y * Math.cos(rotation.z);
-      return { x, y, z };
-    }
-
-    function apply3DTransform(ctx, x, y, z, rotX, rotY, rotation, perspective) {
-      let pos = { x, y, z };
-      pos = applyRotation(pos, rotation);
-      const scaleFactor = perspective / (perspective + pos.z);
-      ctx.translate(pos.x * scaleFactor, pos.y * scaleFactor);
-      ctx.scale(scaleFactor, scaleFactor);
-      ctx.rotate(rotX);
-      ctx.rotate(rotY);
-      ctx.rotate(rotation.z);
-    }
-
-    function captureCloneSample(x, y, width, height) {
+      }
+    } else if (effect === 'chromatic') {
+      ctx.filter = 'hue-rotate(0deg)';
+      ctx.drawImage(img, 2, 2, width, height);
+      ctx.filter = 'hue-rotate(120deg)';
+      ctx.drawImage(img, -2, -2, width, height);
+      ctx.filter = 'hue-rotate(240deg)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'dreamscape') {
+      ctx.filter = `blur(3px) opacity(0.7) hue-rotate(${Math.sin(effectTime) * 180}deg)`;
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(1 + Math.sin(effectTime) * 0.15, 1 + Math.cos(effectTime) * 0.15);
+      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+    } else if (effect === 'warp') {
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(1 + Math.sin(effectTime * 1.5) * 0.3, 1 + Math.cos(effectTime * 1.5) * 0.3);
+      ctx.rotate(Math.sin(effectTime * 0.8) * 0.5);
+      ctx.filter = `contrast(150%) hue-rotate(${Math.sin(effectTime) * 90}deg)`;
+      ctx.globalAlpha = 0.7;
+      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+    } else if (effect === 'static') {
+      ctx.filter = 'contrast(200%) brightness(120%)';
+      ctx.globalAlpha = Math.random() * 0.3 + 0.7;
+      const noise = Math.random() * 10 - 5;
+      ctx.drawImage(img, noise, noise, width, height);
+    } else if (effect === 'ghost') {
+      ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
+      ctx.filter = `blur(2px) hue-rotate(${Math.sin(effectTime * 0.5) * 180}deg)`;
+      ctx.drawImage(img, 0, 0, width, height);
+      ctx.globalAlpha = 0.3;
+      ctx.drawImage(img, 10, 10, width, height);
+    } else if (effect === 'melt') {
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(1, 1 + Math.sin(effectTime * 1.2) * 0.4);
+      ctx.filter = 'contrast(150%) saturate(200%)';
+      ctx.drawImage(img, -width / 2, -height / 2 + Math.sin(effectTime) * 20, width, height);
+    } else if (effect === 'pulse') {
+      ctx.translate(width / 2, height / 2);
+      const pulseScale = 1 + Math.abs(Math.sin(effectTime * 2)) * 0.2;
+      ctx.scale(pulseScale, pulseScale);
+      ctx.filter = 'brightness(150%) contrast(150%)';
+      ctx.globalAlpha = 0.8;
+      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+    } else if (effect === 'shatter') {
+      ctx.translate(width / 2, height / 2);
+      for (let i = 0; i < 3; i++) {
+        ctx.save();
+        ctx.rotate(Math.random() * 0.2 - 0.1);
+        ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
+        ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+        ctx.drawImage(img, -width / 2, -height / 2, width, height);
+        ctx.restore();
+      }
+    } else if (effect === 'flip') {
+      ctx.translate(width / 2, height / 2);
+      ctx.scale(-1, 1);
+      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+    } else if (effect === 'haunt') {
+      ctx.filter = 'grayscale(80%) blur(3px) contrast(150%)';
+      ctx.globalAlpha = 0.4 + Math.abs(Math.sin(effectTime * 3)) * 0.3;
+      const offsetX = (Math.random() - 0.5) * 15;
+      const offsetY = (Math.random() - 0.5) * 15;
+      ctx.translate(offsetX, offsetY);
+      ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
+      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+    } else if (effect === 'eraser') {
+      if (ctx === trailCtx) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(img, 0, 0, width, height);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = 1.0;
+      } else {
+        ctx.drawImage(img, 0, 0, width, height);
+      }
+    } else if (effect === 'grayscale') {
+      ctx.filter = 'grayscale(100%)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'invert') {
+      ctx.filter = 'invert(100%)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'sepia') {
+      ctx.filter = 'sepia(100%)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'pixelate') {
       const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = width;
-      tempCanvas.height = height;
-      const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true, alpha: true });
-      tempCtx.fillStyle = 'transparent';
-      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-      if (currentBackgroundImage && currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
-        const canvasAspect = canvas.width / canvas.height;
-        const imgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
-        let drawWidth, drawHeight, offsetX, offsetY;
-        if (imgAspect > canvasAspect) {
-          drawHeight = canvas.height;
-          drawWidth = drawHeight * imgAspect;
-          offsetX = (canvas.width - drawWidth) / 2;
-          offsetY = 0;
-        } else {
-          drawWidth = canvas.width;
-          drawHeight = drawWidth / imgAspect;
-          offsetX = 0;
-          offsetY = (canvas.height - drawHeight) / 2;
-        }
-        const sx = (x - offsetX) * (currentBackgroundImage.width / drawWidth);
-        const sy = (y - offsetY) * (currentBackgroundImage.height / drawHeight);
-        const sWidth = width * (currentBackgroundImage.width / drawWidth);
-        const sHeight = height * (currentBackgroundImage.height / drawHeight);
-        tempCtx.drawImage(currentBackgroundImage, sx, sy, sWidth, sHeight, 0, 0, width, height);
+      tempCanvas.width = 32;
+      tempCanvas.height = 32;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.imageSmoothingEnabled = false;
+      tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(tempCanvas, 0, 0, width, height);
+      ctx.imageSmoothingEnabled = true;
+    } else if (effect === 'blur') {
+      ctx.filter = 'blur(5px)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'hue') {
+      ctx.filter = `hue-rotate(${hueValue}deg)`;
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'randomHue') {
+      ctx.filter = `hue-rotate(${Math.random() * 360}deg)`;
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'contrast') {
+      ctx.filter = 'contrast(300%)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'brightness') {
+      ctx.filter = 'brightness(250%)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'posterize') {
+      ctx.filter = 'contrast(200%) saturate(150%)';
+      ctx.drawImage(img, 0, 0, width, height);
+    } else if (effect === 'clone') {
+      if (clonedSprite && clonedSprite.complete && clonedSprite.naturalWidth !== 0) {
+        ctx.drawImage(clonedSprite, 0, 0, width, height);
+      } else {
+        ctx.drawImage(img, 0, 0, width, height);
       }
-      tempCtx.drawImage(trailCanvas, x, y, width, height, 0, 0, width, height);
-      tempCtx.globalCompositeOperation = 'destination-in';
-      tempCtx.drawImage(sprite, 0, 0, width, height);
-      tempCtx.globalCompositeOperation = 'source-over';
-      clonedSprite = new Image();
-      clonedSprite.onload = () => {
-        clonedSprite.width = width;
-        clonedSprite.height = height;
-      };
-      clonedSprite.src = tempCanvas.toDataURL('image/png');
+    } else if (effect === 'none') {
+      ctx.drawImage(img, 0, 0, width, height);
     }
+    ctx.restore();
+  });
+  ctx.restore();
+  ctx.globalCompositeOperation = 'source-over';
+}
 
-    function applyEffects(ctx, img, x, y, width, height) {
-      ctx.save();
-      ctx.translate(x, y);
-      if (effects.includes('randomixer')) {
-        applyRandomixer();
-      }
-      if (effects.includes('x6')) {
-        applyx6(ctx, img, 0, 0, width, height);
-        ctx.restore();
-        return;
-      }
-      effects.forEach(effect => {
-        ctx.save();
-        if (effect === 'distort') {
-          ctx.translate(width / 2, height / 2);
-          ctx.scale(1 + Math.sin(effectTime) * 0.2, 1 + Math.cos(effectTime) * 0.2);
-          ctx.drawImage(img, -width / 2, -height / 2, width, height);
-        } else if (effect === 'flicker') {
-          ctx.translate(width / 2, height / 2);
-          ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
-          ctx.filter = `hue-rotate(${Math.random() * 60}deg)`;
-          ctx.globalAlpha = 0.9;
-          const offsetX = (Math.random() - 0.5) * 10;
-          const offsetY = (Math.random() - 0.5) * 10;
-          ctx.drawImage(img, offsetX - width / 2, offsetY - width / 2, width, height);
-        } else if (effect === '420') {
-          ctx.translate(width / 2, height / 2);
-          ctx.rotate(Math.sin(effectTime) * Math.PI);
-          ctx.scale(1 + Math.sin(effectTime * 2) * 0.3, 1 + Math.cos(effectTime * 2) * 0.3);
-          ctx.filter = `hue-rotate(${Math.sin(effectTime) * 360}deg) saturate(200%) contrast(150%)`;
-          ctx.globalAlpha = 0.8 + Math.sin(effectTime * 3) * 0.2;
-          ctx.drawImage(img, -width / 2, -height / 2, width, height);
-        } else if (effect === 'vortex') {
-          ctx.translate(width / 2, height / 2);
-          ctx.rotate(Math.sin(effectTime * 0.5) * Math.PI);
-          ctx.scale(1 + Math.sin(effectTime) * 0.1, 1 + Math.cos(effectTime) * 0.1);
-          ctx.drawImage(img, -width / 2, -height / 2, width, height);
-        } else if (effect === 'ripple') {
-          const offset = Math.sin(effectTime * 2) * 10;
-          ctx.translate(offset, offset);
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'neon') {
-          ctx.filter = 'contrast(200%) brightness(150%) drop-shadow(0 0 10px #0f0)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'fractal') {
-          ctx.translate(width / 2, height / 2);
-          for (let i = 0; i < 4; i++) {
-            ctx.save();
-            ctx.scale(0.7 - i * 0.15, 0.7 - i * 0.15);
-            ctx.rotate((Math.PI / 4) * (i + Math.sin(effectTime * 0.5)));
-            ctx.globalAlpha = 1.0 - i * 0.2;
-            ctx.drawImage(img, -width / 2, -height / 2, width, height);
-            ctx.restore();
-          }
-        } else if (effect === 'chromatic') {
-          ctx.filter = 'hue-rotate(0deg)';
-          ctx.drawImage(img, 2, 2, width, height);
-          ctx.filter = 'hue-rotate(120deg)';
-          ctx.drawImage(img, -2, -2, width, height);
-          ctx.filter = 'hue-rotate(240deg)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'dreamscape') {
-          ctx.filter = `blur(3px) opacity(0.7) hue-rotate(${Math.sin(effectTime) * 180}deg)`;
-          ctx.translate(width / 2, height / 2);
-          ctx.scale(1 + Math.sin(effectTime) * 0.15, 1 + Math.cos(effectTime) * 0.15);
-          ctx.drawImage(img, -width / 2, -height / 2, width, height);
-        } else if (effect === 'warp') {
-          ctx.translate(width / 2, height / 2);
-          ctx.scale(1 + Math.sin(effectTime * 1.5) * 0.3, 1 + Math.cos(effectTime * 1.5) * 0.3);
-          ctx.rotate(Math.sin(effectTime * 0.8) * 0.5);
-          ctx.filter = `contrast(150%) hue-rotate(${Math.sin(effectTime) * 90}deg)`;
-          ctx.globalAlpha = 0.7;
-          ctx.drawImage(img, -width / 2, -height / 2, width, height);
-        } else if (effect === 'static') {
-          ctx.filter = 'contrast(200%) brightness(120%)';
-          ctx.globalAlpha = Math.random() * 0.3 + 0.7;
-          const noise = Math.random() * 10 - 5;
-          ctx.drawImage(img, noise, noise, width, height);
-        } else if (effect === 'ghost') {
-          ctx.globalAlpha = 0.5 + Math.sin(effectTime * 2) * 0.2;
-          ctx.filter = `blur(2px) hue-rotate(${Math.sin(effectTime * 0.5) * 180}deg)`;
-          ctx.drawImage(img, 0, 0, width, height);
-          ctx.globalAlpha = 0.3;
-          ctx.drawImage(img, 10, 10, width, height);
-        } else if (effect === 'melt') {
-          ctx.translate(width / 2, height / 2);
-          ctx.scale(1, 1 + Math.sin(effectTime * 1.2) * 0.4);
-          ctx.filter = 'contrast(150%) saturate(200%)';
-          ctx.drawImage(img, -width / 2, -height / 2 + Math.sin(effectTime) * 20, width, height);
-        } else if (effect === 'pulse') {
-          ctx.translate(width / 2, height / 2);
-          const pulseScale = 1 + Math.abs(Math.sin(effectTime * 2)) * 0.2;
-          ctx.scale(pulseScale, pulseScale);
-          ctx.filter = 'brightness(150%) contrast(150%)';
-          ctx.globalAlpha = 0.8;
-          ctx.drawImage(img, -width / 2, -height / 2, width, height);
-        } else if (effect === 'shatter') {
-          ctx.translate(width / 2, height / 2);
-          for (let i = 0; i < 3; i++) {
-            ctx.save();
-            ctx.rotate(Math.random() * 0.2 - 0.1);
-            ctx.translate((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
-            ctx.globalAlpha = 0.6 + Math.random() * 0.4;
-            ctx.drawImage(img, -width / 2, -height / 2, width, height);
-            ctx.restore();
-          }
-        } else if (effect === 'flip') {
-          ctx.translate(width / 2, height / 2);
-          ctx.scale(-1, 1);
-          ctx.drawImage(img, -width / 2, -height / 2, width, height);
-        } else if (effect === 'haunt') {
-          ctx.filter = 'grayscale(80%) blur(3px) contrast(150%)';
-          ctx.globalAlpha = 0.4 + Math.abs(Math.sin(effectTime * 3)) * 0.3;
-          const offsetX = (Math.random() - 0.5) * 15;
-          const offsetY = (Math.random() - 0.5) * 15;
-          ctx.translate(offsetX, offsetY);
-          ctx.scale(1 + Math.sin(effectTime * 2) * 0.1, 1 + Math.cos(effectTime * 2) * 0.1);
-          ctx.drawImage(img, -width / 2, -height / 2, width, height);
-        } else if (effect === 'eraser') {
-          if (ctx === trailCtx) {
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.globalAlpha = 0.5;
-            ctx.drawImage(img, 0, 0, width, height);
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.globalAlpha = 1.0;
-          } else {
-            ctx.drawImage(img, 0, 0, width, height);
-          }
-        } else if (effect === 'grayscale') {
-          ctx.filter = 'grayscale(100%)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'invert') {
-          ctx.filter = 'invert(100%)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'sepia') {
-          ctx.filter = 'sepia(100%)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'pixelate') {
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = 32;
-          tempCanvas.height = 32;
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCtx.imageSmoothingEnabled = false;
-          tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(tempCanvas, 0, 0, width, height);
-          ctx.imageSmoothingEnabled = true;
-        } else if (effect === 'blur') {
-          ctx.filter = 'blur(5px)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'hue') {
-          ctx.filter = `hue-rotate(${hueValue}deg)`;
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'randomHue') {
-          ctx.filter = `hue-rotate(${Math.random() * 360}deg)`;
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'contrast') {
-          ctx.filter = 'contrast(300%)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'brightness') {
-          ctx.filter = 'brightness(250%)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'posterize') {
-          ctx.filter = 'contrast(200%) saturate(150%)';
-          ctx.drawImage(img, 0, 0, width, height);
-        } else if (effect === 'clone') {
-          if (clonedSprite && clonedSprite.complete && clonedSprite.naturalWidth !== 0) {
-            ctx.drawImage(clonedSprite, 0, 0, width, height);
-          } else {
-            ctx.drawImage(img, 0, 0, width, height);
-          }
-        } else if (effect === 'none') {
-          ctx.drawImage(img, 0, 0, width, height);
-        }
-        ctx.restore();
-      });
-      ctx.restore();
-      ctx.globalCompositeOperation = 'source-over';
+function isMouseOverSprite(x, y) {
+  const scaledWidth = sprite.width * scale;
+  const scaledHeight = sprite.height * scale;
+  const posX = effects.includes('x6') ? cubeX : spriteX;
+  const posY = effects.includes('x6') ? cubeY : spriteY;
+  return x >= posX && x <= posX + scaledWidth && y >= posY && y <= posY + scaledHeight;
+}
+
+function animate(currentTime) {
+  const deltaTime = (currentTime - lastTime) / 1000;
+  lastTime = currentTime;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!isDraggingSprite) {
+    const scaledWidth = sprite.width * scale;
+    const scaledHeight = sprite.height * scale;
+    if (currentTime > changeDirectionTime) {
+      resetVelocity();
     }
-
-    function isMouseOverSprite(x, y) {
-      const scaledWidth = sprite.width * scale;
-      const scaledHeight = sprite.height * scale;
-      const posX = effects.includes('x6') ? cubeX : spriteX;
-      const posY = effects.includes('x6') ? cubeY : spriteY;
-      return x >= posX && x <= posX + scaledWidth && y >= posY && y <= posY + scaledHeight;
+    let nextX = spriteX + dx * deltaTime * 60;
+    let nextY = spriteY + dy * deltaTime * 60;
+    if (nextX + scaledWidth > canvas.width) {
+      nextX = canvas.width - scaledWidth;
+      resetVelocity();
+    } else if (nextX < 0) {
+      nextX = 0;
+      resetVelocity();
     }
-
-    function animate(currentTime) {
-      const deltaTime = (currentTime - lastTime) / 1000;
-      lastTime = currentTime;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!isDraggingSprite) {
-        const scaledWidth = sprite.width * scale;
-        const scaledHeight = sprite.height * scale;
-        if (currentTime > changeDirectionTime) {
-          resetVelocity();
-        }
-        let nextX = spriteX + dx * deltaTime * 60;
-        let nextY = spriteY + dy * deltaTime * 60;
-        if (nextX + scaledWidth > canvas.width) {
-          nextX = canvas.width - scaledWidth;
-          resetVelocity();
-        } else if (nextX < 0) {
-          nextX = 0;
-          resetVelocity();
-        }
-        if (nextY + scaledHeight > canvas.height) {
-          nextY = canvas.height - scaledHeight;
-          resetVelocity();
-        } else if (nextY < 0) {
-          nextY = 0;
-          resetVelocity();
-        }
-        spriteX = nextX;
-        spriteY = nextY;
-        if (effects.includes('x6')) {
-          if (currentTime > cubeChangeDirectionTime) {
-            resetCubeVelocity();
-          }
-          let cubeNextX = cubeX + cubeDx * deltaTime * 60;
-          let cubeNextY = cubeY + cubeDy * deltaTime * 60;
-          if (cubeNextX + scaledWidth > canvas.width) {
-            cubeNextX = canvas.width - scaledWidth;
-            resetCubeVelocity();
-          } else if (cubeNextX < 0) {
-            cubeNextX = 0;
-            resetCubeVelocity();
-          }
-          if (cubeNextY + scaledHeight > canvas.height) {
-            cubeNextY = canvas.height - scaledHeight;
-            resetCubeVelocity();
-          } else if (cubeNextY < 0) {
-            cubeNextY = 0;
-            resetCubeVelocity();
-          }
-          cubeX = cubeNextX;
-          cubeY = cubeNextY;
-        }
-      }
-      if (effects.includes('x6')) {
-        cubeRotation.x += cubeVelocity.x * deltaTime;
-        cubeRotation.y += cubeVelocity.y * deltaTime;
-        cubeRotation.z += cubeVelocity.z * deltaTime;
-      }
-      if (trailAlways || isDraggingSprite) {
-        trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
-        applyEffects(trailCtx, clonedSprite || sprite, effects.includes('x6') ? cubeX : spriteX, effects.includes('x6') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
-      }
-      ctx.drawImage(trailCanvas, 0, 0);
-      applyEffects(ctx, clonedSprite || sprite, effects.includes('x6') ? cubeX : spriteX, effects.includes('x6') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
-      if (effects.includes('hue')) {
-        hueValue = (hueValue + 2) % 360;
-      }
-      if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter', 'haunt'].some(e => effects.includes(e))) {
-        effectTime += 0.1 * deltaTime * 60;
-      }
-      window.animationFrameId = requestAnimationFrame(animate);
+    if (nextY + scaledHeight > canvas.height) {
+      nextY = canvas.height - scaledHeight;
+      resetVelocity();
+    } else if (nextY < 0) {
+      nextY = 0;
+      resetVelocity();
     }
-
-    function isOverControlPanel(x, y) {
-      const rect = controlPanel.getBoundingClientRect();
-      return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+    spriteX = nextX;
+    spriteY = nextY;
+    if (effects.includes('x6')) {
+      if (currentTime > cubeChangeDirectionTime) {
+        resetCubeVelocity();
+      }
+      let cubeNextX = cubeX + cubeDx * deltaTime * 60;
+      let cubeNextY = cubeY + cubeDy * deltaTime * 60;
+      if (cubeNextX + scaledWidth > canvas.width) {
+        cubeNextX = canvas.width - scaledWidth;
+        resetCubeVelocity();
+      } else if (cubeNextX < 0) {
+        cubeNextX = 0;
+        resetCubeVelocity();
+      }
+      if (cubeNextY + scaledHeight > canvas.height) {
+        cubeNextY = canvas.height - scaledHeight;
+        resetCubeVelocity();
+      } else if (cubeNextY < 0) {
+        cubeNextY = 0;
+        resetCubeVelocity();
+      }
+      cubeX = cubeNextX;
+      cubeY = cubeNextY;
     }
+  }
+  if (effects.includes('x6')) {
+    cubeRotation.x += cubeVelocity.x * deltaTime;
+    cubeRotation.y += cubeVelocity.y * deltaTime;
+    cubeRotation.z += cubeVelocity.z * deltaTime;
+  }
+  if (trailAlways || isDraggingSprite) {
+    trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
+    applyEffects(trailCtx, clonedSprite || sprite, effects.includes('x6') ? cubeX : spriteX, effects.includes('x6') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
+  }
+  ctx.drawImage(trailCanvas, 0, 0);
+  applyEffects(ctx, clonedSprite || sprite, effects.includes('x6') ? cubeX : spriteX, effects.includes('x6') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
+  if (effects.includes('hue')) {
+    hueValue = (hueValue + 2) % 360;
+  }
+  if (['distort', '420', 'vortex', 'ripple', 'neon', 'fractal', 'chromatic', 'dreamscape', 'flicker', 'warp', 'static', 'ghost', 'melt', 'pulse', 'shatter', 'haunt'].some(e => effects.includes(e))) {
+    effectTime += 0.1 * deltaTime * 60;
+  }
+  window.animationFrameId = requestAnimationFrame(animate);
+}
 
-    controlPanel.addEventListener('mousedown', (e) => {
-      const target = e.target;
-      if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
-        isDraggingPanel = true;
-        controlPanel.classList.add('dragging');
-        panelOffsetX = e.clientX - controlPanel.getBoundingClientRect().left;
-        panelOffsetY = e.clientY - controlPanel.getBoundingClientRect().top;
-      }
-    });
+function isOverControlPanel(x, y) {
+  const rect = controlPanel.getBoundingClientRect();
+  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+}
 
-    controlPanel.addEventListener('touchstart', (e) => {
-      const target = e.target;
-      if (target.tagName === 'LI') {
-        touchStartTime = performance.now();
-        touchStartY = e.touches[0].clientY;
-        touchMoved = false;
-      } else if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
-        e.preventDefault();
-        isDraggingPanel = true;
-        controlPanel.classList.add('dragging');
-        const touch = e.touches[0];
-        panelOffsetX = touch.clientX - controlPanel.getBoundingClientRect().left;
-        panelOffsetY = touch.clientY - controlPanel.getBoundingClientRect().top;
-      }
-    });
+controlPanel.addEventListener('mousedown', (e) => {
+  const target = e.target;
+  if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'LI' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
+    isDraggingPanel = true;
+    controlPanel.classList.add('dragging');
+    panelOffsetX = e.clientX - controlPanel.getBoundingClientRect().left;
+    panelOffsetY = e.clientY - controlPanel.getBoundingClientRect().top;
+  }
+});
 
-    document.addEventListener('mousemove', (e) => {
-      if (isDraggingPanel) {
-        e.preventDefault();
-        const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
-        panelX = (e.clientX - panelOffsetX) / scaleFactor;
-        panelY = Math.min(window.innerHeight - controlPanel.offsetHeight / scaleFactor - 15, Math.max(0, e.clientY - panelOffsetY) / scaleFactor);
-        controlPanel.style.left = `${panelX}px`;
-        controlPanel.style.top = `${panelY}px`;
-        controlPanel.style.right = 'auto';
-        controlPanel.style.bottom = 'auto';
-      } else if (isDraggingSprite) {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
-        spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
-        if (effects.includes('x6')) {
-          cubeX = spriteX;
-          cubeY = spriteY;
-        }
-      }
-    });
+controlPanel.addEventListener('touchstart', (e) => {
+  const target = e.target;
+  if (target.tagName === 'LI') {
+    touchStartTime = performance.now();
+    touchStartY = e.touches[0].clientY;
+    touchMoved = false;
+  } else if (target.tagName !== 'BUTTON' && target.tagName !== 'INPUT' && target.tagName !== 'A' && target.tagName !== 'LABEL') {
+    e.preventDefault();
+    isDraggingPanel = true;
+    controlPanel.classList.add('dragging');
+    const touch = e.touches[0];
+    panelOffsetX = touch.clientX - controlPanel.getBoundingClientRect().left;
+    panelOffsetY = touch.clientY - controlPanel.getBoundingClientRect().top;
+  }
+});
 
-    document.addEventListener('touchmove', (e) => {
-      if (isDraggingPanel) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
-        panelX = (touch.clientX - panelOffsetX) / scaleFactor;
-        panelY = Math.min(window.innerHeight - controlPanel.offsetHeight / scaleFactor - 15, Math.max(0, touch.clientY - panelOffsetY) / scaleFactor);
-        controlPanel.style.left = `${panelX}px`;
-        controlPanel.style.top = `${panelY}px`;
-        controlPanel.style.right = 'auto';
-        controlPanel.style.bottom = 'auto';
-      } else if (isDraggingSprite) {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const touch = e.touches[0];
-        const touchX = touch.clientX - rect.left;
-        const touchY = touch.clientY - rect.top;
-        spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
-        spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
-        if (effects.includes('x6')) {
-          cubeX = spriteX;
-          cubeY = spriteY;
-        }
-      } else if (e.target.tagName === 'LI') {
-        const touchY = e.touches[0].clientY;
-        const deltaY = Math.abs(touchY - touchStartY);
-        if (deltaY > 5) {
-          touchMoved = true;
-          const fxList = document.getElementById('fx-list');
-          fxList.scrollTop -= (touchY - touchStartY);
-          touchStartY = touchY;
-        }
-      }
-    });
-
-    document.addEventListener('mouseup', () => {
-      if (isDraggingPanel) {
-        isDraggingPanel = false;
-        controlPanel.classList.remove('dragging');
-      }
-      if (isDraggingSprite) {
-        isDraggingSprite = false;
-        resetVelocity();
-        if (effects.includes('x6')) {
-          resetCubeVelocity();
-        }
-        if (effects.includes('clone')) {
-          captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-        }
-      }
-    });
-
-    document.addEventListener('touchend', (e) => {
-      if (isDraggingPanel) {
-        isDraggingPanel = false;
-        controlPanel.classList.remove('dragging');
-      }
-      if (isDraggingSprite) {
-        isDraggingSprite = false;
-        resetVelocity();
-        if (effects.includes('x6')) {
-          resetCubeVelocity();
-        }
-        if (effects.includes('clone')) {
-          captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-        }
-      }
-      if (e.target.tagName === 'LI' && !touchMoved && performance.now() - touchStartTime < 300) {
-        changeEffect(e.target);
-      }
-      touchMoved = false;
-    });
-
-    document.addEventListener('touchcancel', () => {
-      if (isDraggingPanel) {
-        isDraggingPanel = false;
-        controlPanel.classList.remove('dragging');
-      }
-      if (isDraggingSprite) {
-        isDraggingSprite = false;
-        resetVelocity();
-        if (effects.includes('x6')) {
-          resetCubeVelocity();
-        }
-        if (effects.includes('clone')) {
-          captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-        }
-      }
-      touchMoved = false;
-    });
-
-    canvas.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-      if (!isOverControlPanel(e.clientX, e.clientY)) {
-        if (isMouseOverSprite(mouseX, mouseY)) {
-          isDraggingSprite = true;
-          dx = 0;
-          dy = 0;
-          if (effects.includes('x6')) {
-            cubeDx = 0;
-            cubeDy = 0;
-          }
-        } else {
-          spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
-          spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
-          if (effects.includes('x6')) {
-            cubeX = spriteX;
-            cubeY = spriteY;
-          }
-          isDraggingSprite = true;
-        }
-        if (effects.includes('clone')) {
-          captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-        }
-      }
-    });
-
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const touch = e.touches[0];
-      const touchX = touch.clientX - rect.left;
-      const touchY = touch.clientY - rect.top;
-      if (!isOverControlPanel(touch.clientX, touch.clientY)) {
-        if (isMouseOverSprite(touchX, touchY)) {
-          isDraggingSprite = true;
-          dx = 0;
-          dy = 0;
-          if (effects.includes('x6')) {
-            cubeDx = 0;
-            cubeDy = 0;
-          }
-        } else {
-          spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
-          spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
-          if (effects.includes('x6')) {
-            cubeX = spriteX;
-            cubeY = spriteY;
-          }
-          isDraggingSprite = true;
-        }
-        if (effects.includes('clone')) {
-          captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
-        }
-      }
-    });
-
-    const fxList = document.getElementById('fx-list');
-    fxList.addEventListener('click', (e) => {
-      if (e.target.tagName === 'LI') {
-        changeEffect(e.target);
-      }
-    });
-
-    fxList.addEventListener('touchstart', (e) => {
-      if (e.target.tagName === 'LI') {
-        touchStartTime = performance.now();
-        touchStartY = e.touches[0].clientY;
-        touchMoved = false;
-      }
-    });
-
-    fxList.addEventListener('touchmove', (e) => {
-      if (e.target.tagName === 'LI') {
-        const touchY = e.touches[0].clientY;
-        const deltaY = Math.abs(touchY - touchStartY);
-        if (deltaY > 5) {
-          touchMoved = true;
-          fxList.scrollTop -= (touchY - touchStartY);
-          touchStartY = touchY;
-        }
-      }
-    });
-
-    fxList.addEventListener('touchend', (e) => {
-      if (e.target.tagName === 'LI' && !touchMoved && performance.now() - touchStartTime < 300) {
-        changeEffect(e.target);
-      }
-      touchMoved = false;
-    });
-
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      trailCanvas.width = canvas.width;
-      trailCanvas.height = canvas.height;
-      spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2));
-      spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
+document.addEventListener('mousemove', (e) => {
+  if (isDraggingPanel) {
+    e.preventDefault();
+    const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
+    panelX = (e.clientX - panelOffsetX) / scaleFactor;
+    panelY = Math.min(window.innerHeight - controlPanel.offsetHeight / scaleFactor - 1.35, Math.max(0, e.clientY - panelOffsetY) / scaleFactor);
+    controlPanel.style.left = `${panelX}px`;
+    controlPanel.style.top = `${panelY}px`;
+    controlPanel.style.right = 'auto';
+    controlPanel.style.bottom = 'auto';
+  } else if (isDraggingSprite) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
+    spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
+    if (effects.includes('x6')) {
       cubeX = spriteX;
       cubeY = spriteY;
-      if (!isDraggingPanel) {
-        setInitialPanelPosition();
-      }
-    });
+    }
+  }
+});
 
-    window.onload = () => {
-      setInitialPanelPosition();
-      loadSpriteImage(defaultSprite);
-      animate(performance.now());
-    };
+document.addEventListener('touchmove', (e) => {
+  if (isDraggingPanel) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
+    panelX = (touch.clientX - panelOffsetX) / scaleFactor;
+    panelY = Math.min(window.innerHeight - controlPanel.offsetHeight / scaleFactor - 1.35, Math.max(0, touch.clientY - panelOffsetY) / scaleFactor);
+    controlPanel.style.left = `${panelX}px`;
+    controlPanel.style.top = `${panelY}px`;
+    controlPanel.style.right = 'auto';
+    controlPanel.style.bottom = 'auto';
+  } else if (isDraggingSprite) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
+    spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
+    if (effects.includes('x6')) {
+      cubeX = spriteX;
+      cubeY = spriteY;
+    }
+  } else if (e.target.tagName === 'LI') {
+    const touchY = e.touches[0].clientY;
+    const deltaY = Math.abs(touchY - touchStartY);
+    if (deltaY > 5) {
+      touchMoved = true;
+      const fxList = document.getElementById('fx-list');
+      fxList.scrollTop -= (touchY - touchStartY);
+      touchStartY = touchY;
+    }
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if (isDraggingPanel) {
+    isDraggingPanel = false;
+    controlPanel.classList.remove('dragging');
+  }
+  if (isDraggingSprite) {
+    isDraggingSprite = false;
+    resetVelocity();
+    if (effects.includes('x6')) {
+      resetCubeVelocity();
+    }
+    if (effects.includes('clone')) {
+      captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    }
+  }
+});
+
+document.addEventListener('touchend', (e) => {
+  if (isDraggingPanel) {
+    isDraggingPanel = false;
+    controlPanel.classList.remove('dragging');
+  }
+  if (isDraggingSprite) {
+    isDraggingSprite = false;
+    resetVelocity();
+    if (effects.includes('x6')) {
+      resetCubeVelocity();
+    }
+    if (effects.includes('clone')) {
+      captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    }
+  }
+  if (e.target.tagName === 'LI' && !touchMoved && performance.now() - touchStartTime < 300) {
+    changeEffect(e.target);
+  }
+  touchMoved = false;
+});
+
+document.addEventListener('touchcancel', () => {
+  if (isDraggingPanel) {
+    isDraggingPanel = false;
+    controlPanel.classList.remove('dragging');
+  }
+  if (isDraggingSprite) {
+    isDraggingSprite = false;
+    resetVelocity();
+    if (effects.includes('x6')) {
+      resetCubeVelocity();
+    }
+    if (effects.includes('clone')) {
+      captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    }
+  }
+  touchMoved = false;
+});
+
+canvas.addEventListener('mousedown', (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  if (!isOverControlPanel(e.clientX, e.clientY)) {
+    if (isMouseOverSprite(mouseX, mouseY)) {
+      isDraggingSprite = true;
+      dx = 0;
+      dy = 0;
+      if (effects.includes('x6')) {
+        cubeDx = 0;
+        cubeDy = 0;
+      }
+    } else {
+      spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
+      spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
+      if (effects.includes('x6')) {
+        cubeX = spriteX;
+        cubeY = spriteY;
+      }
+      isDraggingSprite = true;
+    }
+    if (effects.includes('clone')) {
+      captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    }
+  }
+});
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const touch = e.touches[0];
+  const touchX = touch.clientX - rect.left;
+  const touchY = touch.clientY - rect.top;
+  if (!isOverControlPanel(touch.clientX, touch.clientY)) {
+    if (isMouseOverSprite(touchX, touchY)) {
+      isDraggingSprite = true;
+      dx = 0;
+      dy = 0;
+      if (effects.includes('x6')) {
+        cubeDx = 0;
+        cubeDy = 0;
+      }
+    } else {
+      spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
+      spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
+      if (effects.includes('x6')) {
+        cubeX = spriteX;
+        cubeY = spriteY;
+      }
+      isDraggingSprite = true;
+    }
+    if (effects.includes('clone')) {
+      captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    }
+  }
+});
+
+const fxList = document.getElementById('fx-list');
+fxList.addEventListener('click', (e) => {
+  if (e.target.tagName === 'LI') {
+    changeEffect(e.target);
+  }
+});
+
+fxList.addEventListener('touchstart', (e) => {
+  if (e.target.tagName === 'LI') {
+    touchStartTime = performance.now();
+    touchStartY = e.touches[0].clientY;
+    touchMoved = false;
+  }
+});
+
+fxList.addEventListener('touchmove', (e) => {
+  if (e.target.tagName === 'LI') {
+    const touchY = e.touches[0].clientY;
+    const deltaY = Math.abs(touchY - touchStartY);
+    if (deltaY > 5) {
+      touchMoved = true;
+      fxList.scrollTop -= (touchY - touchStartY);
+      touchStartY = touchY;
+    }
+  }
+});
+
+fxList.addEventListener('touchend', (e) => {
+  if (e.target.tagName === 'LI' && !touchMoved && performance.now() - touchStartTime < 300) {
+    changeEffect(e.target);
+  }
+  touchMoved = false;
+});
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  trailCanvas.width = canvas.width;
+  trailCanvas.height = canvas.height;
+  spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2));
+  spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
+  cubeX = spriteX;
+  cubeY = spriteY;
+  if (!isDraggingPanel) {
+    setInitialPanelPosition();
+  }
+});
+
+window.onload = () => {
+  setInitialPanelPosition();
+  loadSpriteImage(defaultSprite);
+  animate(performance.now());
+};
   </script>
 </body>
 </html>
