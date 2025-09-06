@@ -7,7 +7,6 @@
 <title>Trail³r</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap" rel="stylesheet">
 <style>
-  /* Original styles preserved */
   body {
     margin: 0;
     background: #000;
@@ -43,23 +42,11 @@
     align-items: center;
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.4), inset 0 0 5px rgba(0, 255, 0, 0.2);
     backdrop-filter: blur(2px);
-    max-height: 30vh;
-    overflow-y: auto;
     pointer-events: auto;
     cursor: grab;
   }
   #control-panel.dragging {
     cursor: grabbing;
-  }
-  #control-panel::-webkit-scrollbar {
-    width: 8px;
-  }
-  #control-panel::-webkit-scrollbar-track {
-    background: #111;
-  }
-  #control-panel::-webkit-scrollbar-thumb {
-    background: #0f0;
-    border-radius: 4px;
   }
   #control-panel h1 {
     font-size: 18.72px;
@@ -105,23 +92,7 @@
     -moz-appearance: none;
     background: rgba(0, 0, 0, 0.8) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%230f0"><polygon points="0,0 10,0 5,10"/></svg>') no-repeat right 5px center;
     background-size: 10px;
-    max-height: 100px;
-    overflow-y: auto;
     pointer-events: auto;
-  }
-  select::-webkit-scrollbar {
-    width: 8px;
-  }
-  select::-webkit-scrollbar-track {
-    background: #111;
-  }
-  select::-webkit-scrollbar-thumb {
-    background: #0f0;
-    border-radius: 4px;
-  }
-  select option:checked {
-    background: #0f0;
-    color: #000;
   }
   input[type="range"] {
     width: calc(50% - 1.5px);
@@ -172,14 +143,31 @@
     pointer-events: none;
   }
   #fx-list {
+    position: absolute;
+    bottom: 100%;
     width: 100%;
-    max-height: none;
+    max-height: 150px;
     list-style: none;
     padding: 0;
     margin: 0;
     display: none;
     flex-direction: column;
     gap: 3px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #0f0;
+    border-radius: 4px;
+    touch-action: pan-y;
+  }
+  #fx-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  #fx-list::-webkit-scrollbar-track {
+    background: #111;
+  }
+  #fx-list::-webkit-scrollbar-thumb {
+    background: #0f0;
+    border-radius: 4px;
   }
   #fx-list li {
     background: rgba(0, 0, 0, 0.8);
@@ -192,6 +180,7 @@
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     pointer-events: auto;
+    touch-action: manipulation;
   }
   #fx-list li:active {
     transform: translateY(0);
@@ -238,12 +227,8 @@
   <button onclick="handleSnapshot()">Snapshot</button>
   <button id="fx-button" onclick="toggleFxList()">FX</button>
   <button id="reset-btn" onclick="resetCanvas()">Reset</button>
-  <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
-  <label for="scale">Scale: <span id="scale-value">1</span></label>
-  <input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
-  <label for="trail-always">Always Trail</label>
   <ul id="fx-list">
-    <li data-value="none" class="selected">No FX</li>
+    <li data-value="none" class="selected">Reset FX</li>
     <li data-value="grayscale">Grayscale</li>
     <li data-value="invert">Invert</li>
     <li data-value="sepia">Sepia</li>
@@ -271,7 +256,14 @@
     <li data-value="pulse">Pulse</li>
     <li data-value="flip">Flip</li>
     <li data-value="eraser">Eraser</li>
+    <li data-value="randomixer">Randomixer</li>
+    <li data-value="cuber">Cuber</li>
+    <li data-value="clone">Clone</li>
   </ul>
+  <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1" oninput="changeScale(this.value)">
+  <label for="scale">Scale: <span id="scale-value">1</span></label>
+  <input type="checkbox" id="trail-always" onchange="toggleTrailAlways(this.checked)">
+  <label for="trail-always">Always Trail</label>
 </div>
 <div id="snapshot-message">Snapshot captured! Downloading...</div>
 <script>
@@ -281,7 +273,7 @@
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const controlPanel = document.getElementById('control-panel');
   let panelX = window.innerWidth / 2 - 218.4 / 2;
-  let panelY = window.innerHeight - 15;
+  let panelY = window.innerHeight - 15 - controlPanel.offsetHeight;
   let isDraggingPanel = false;
   let panelOffsetX = 0;
   let panelOffsetY = 0;
@@ -293,7 +285,7 @@
   let spriteY = canvas.height / 2;
   let dx = 0;
   let dy = 0;
-  const speed = 0.8; // Reduced default speed
+  const speed = 0.8;
   let scale = 1;
   let effects = ['none'];
   let isDraggingSprite = false;
@@ -307,6 +299,16 @@
   let trailAlways = false;
   let lastTime = performance.now();
   let changeDirectionTime = 0;
+  let clonedSprite = null;
+  let lastRandomixerTime = 0;
+  const randomixerInterval = 1000;
+  let cubeRotation = { x: 0, y: 0, z: 0 };
+  let cubeVelocity = { x: Math.random() * 0.5 - 0.25, y: Math.random() * 0.5 - 0.25, z: Math.random() * 0.5 - 0.25 };
+  let cubeX = canvas.width / 2;
+  let cubeY = canvas.height / 2;
+  let cubeDx = 0;
+  let cubeDy = 0;
+  let cubeChangeDirectionTime = 0;
 
   function initializeSprite() {
     if (sprite.width && sprite.height) {
@@ -319,8 +321,11 @@
     }
     spriteX = canvas.width / 2 - (sprite.width * scale) / 2;
     spriteY = canvas.height / 2 - (sprite.height * scale) / 2;
+    cubeX = spriteX;
+    cubeY = spriteY;
     if (!isDraggingSprite) {
       resetVelocity();
+      resetCubeVelocity();
     }
   }
 
@@ -346,13 +351,23 @@
     const angle = Math.random() * 2 * Math.PI;
     dx = Math.cos(angle) * speed;
     dy = Math.sin(angle) * speed;
-    changeDirectionTime = performance.now() + Math.random() * 2000 + 1000; // Change direction every 1-3 seconds
+    changeDirectionTime = performance.now() + Math.random() * 2000 + 1000;
+  }
+
+  function resetCubeVelocity() {
+    const angle = Math.random() * 2 * Math.PI;
+    cubeDx = Math.cos(angle) * speed;
+    cubeDy = Math.sin(angle) * speed;
+    cubeChangeDirectionTime = performance.now() + Math.random() * 2000 + 1000;
   }
 
   function loadSprite(event) {
     const file = event.target.files[0];
     if (file) {
-      sprite.src = URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);
+      loadSpriteImage(url);
+      clonedSprite = null;
+      document.getElementById('sprite-upload').value = ''; // Reset file input
     } else {
       alert('Please select an image file for the sprite.');
     }
@@ -368,6 +383,7 @@
         currentBackgroundImage = bg;
         canvas.style.background = `url(${bg.src}) no-repeat center`;
         canvas.style.backgroundSize = 'cover';
+        document.getElementById('bg-upload').value = ''; // Reset file input
       };
       bg.onerror = () => {
         alert('Failed to load background image. Please try another file.');
@@ -414,7 +430,7 @@
     }
 
     tempCtx.drawImage(trailCanvas, 0, 0);
-    applyEffects(tempCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    applyEffects(tempCtx, clonedSprite || sprite, effects.includes('cuber') ? cubeX : spriteX, effects.includes('cuber') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
 
     try {
       const dataURL = tempCanvas.toDataURL('image/png', 1.0);
@@ -436,6 +452,7 @@
     trailCtx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
     canvas.style.background = '#000';
     currentBackgroundImage = null;
+    clonedSprite = null;
     scale = 1;
     document.getElementById('scale').value = 1;
     document.getElementById('scale-value').textContent = '1';
@@ -457,12 +474,24 @@
     Array.from(fxList.children).forEach(li => {
       li.classList.toggle('selected', li.dataset.value === 'none');
     });
-    
-    // Reset sprite
-    loadSpriteImage(defaultSprite);
+    sprite = new Image();
+    sprite.crossOrigin = "anonymous";
+    sprite.onload = initializeSprite;
+    sprite.onerror = () => {
+      console.error('Failed to load sprite. Using fallback.');
+      sprite.src = fallbackSprite;
+    };
+    sprite.src = defaultSprite;
     spriteX = canvas.width / 2 - (218.4 * scale) / 2;
     spriteY = canvas.height / 2 - (218.4 * scale) / 2;
+    cubeX = spriteX;
+    cubeY = spriteY;
     resetVelocity();
+    resetCubeVelocity();
+    cubeRotation = { x: 0, y: 0, z: 0 };
+    cubeVelocity = { x: Math.random() * 0.5 - 0.25, y: Math.random() * 0.5 - 0.25, z: Math.random() * 0.5 - 0.25 };
+    document.getElementById('sprite-upload').value = '';
+    document.getElementById('bg-upload').value = '';
     animate(performance.now());
   }
 
@@ -475,13 +504,6 @@
     } else {
       fxList.style.display = 'flex';
       fxButton.textContent = 'CLOSE FX';
-      const panelHeight = controlPanel.offsetHeight;
-      const maxY = window.innerHeight - panelHeight - 15;
-      if (panelY > maxY) {
-        panelY = maxY;
-        controlPanel.style.top = `${panelY}px`;
-        controlPanel.style.bottom = 'auto';
-      }
     }
   }
 
@@ -518,9 +540,145 @@
     trailAlways = checked;
   }
 
+  function applyRandomixer() {
+    const now = performance.now();
+    if (now - lastRandomixerTime < randomixerInterval) return;
+    lastRandomixerTime = now;
+
+    const fxList = Array.from(document.getElementById('fx-list').children);
+    const allEffects = fxList.map(li => li.dataset.value).filter(v => v !== 'none' && v !== 'randomixer');
+    const numEffects = Math.floor(Math.random() * 3) + 1; // 1 to 3 effects
+    effects = effects.filter(effect => effect === 'randomixer');
+    fxList.forEach(li => li.classList.remove('selected'));
+    document.querySelector('#fx-list li[data-value="none"]').classList.remove('selected');
+    document.querySelector('#fx-list li[data-value="randomixer"]').classList.add('selected');
+
+    for (let i = 0; i < numEffects; i++) {
+      const randomEffect = allEffects[Math.floor(Math.random() * allEffects.length)];
+      if (!effects.includes(randomEffect)) {
+        effects.push(randomEffect);
+        document.querySelector(`#fx-list li[data-value="${randomEffect}"]`).classList.add('selected');
+      }
+    }
+  }
+
+  function applyCuber(ctx, img, x, y, width, height) {
+    const cubeSize = Math.min(width, height);
+    const halfSize = cubeSize / 2;
+    const perspective = 1000;
+
+    ctx.save();
+    ctx.translate(x + halfSize, y + halfSize);
+
+    const faces = [
+      { x: 0, y: 0, z: halfSize, rotX: 0, rotY: 0 }, // Front
+      { x: 0, y: 0, z: -halfSize, rotX: Math.PI, rotY: 0 }, // Back
+      { x: halfSize, y: 0, z: 0, rotX: 0, rotY: Math.PI / 2 }, // Right
+      { x: -halfSize, y: 0, z: 0, rotX: 0, rotY: -Math.PI / 2 }, // Left
+      { x: 0, y: -halfSize, z: 0, rotX: -Math.PI / 2, rotY: 0 }, // Top
+      { x: 0, y: halfSize, z: 0, rotX: Math.PI / 2, rotY: 0 }  // Bottom
+    ];
+
+    // Sort faces by z-depth for correct rendering
+    faces.sort((a, b) => {
+      const aPos = { x: a.x, y: a.y, z: a.z };
+      const bPos = { x: b.x, y: b.y, z: b.z };
+      applyRotation(aPos, cubeRotation);
+      applyRotation(bPos, cubeRotation);
+      return bPos.z - aPos.z;
+    });
+
+    faces.forEach(face => {
+      ctx.save();
+      ctx.translate(face.x, face.y);
+      apply3DTransform(ctx, face.x, face.y, face.z, face.rotX, face.rotY, cubeRotation, perspective);
+      ctx.drawImage(img, -halfSize, -halfSize, cubeSize, cubeSize);
+      ctx.restore();
+    });
+
+    ctx.restore();
+  }
+
+  function applyRotation(point, rotation) {
+    let { x, y, z } = point;
+    // Rotate around X
+    let tempY = y;
+    y = tempY * Math.cos(rotation.x) - z * Math.sin(rotation.x);
+    z = tempY * Math.sin(rotation.x) + z * Math.cos(rotation.x);
+    // Rotate around Y
+    let tempX = x;
+    x = tempX * Math.cos(rotation.y) - z * Math.sin(rotation.y);
+    z = tempX * Math.sin(rotation.y) + z * Math.cos(rotation.y);
+    // Rotate around Z
+    tempX = x;
+    x = tempX * Math.cos(rotation.z) - y * Math.sin(rotation.z);
+    y = tempX * Math.sin(rotation.z) + y * Math.cos(rotation.z);
+    return { x, y, z };
+  }
+
+  function apply3DTransform(ctx, x, y, z, rotX, rotY, rotation, perspective) {
+    let pos = { x, y, z };
+    pos = applyRotation(pos, rotation);
+    const scaleFactor = perspective / (perspective + pos.z);
+    ctx.translate(pos.x * scaleFactor, pos.y * scaleFactor);
+    ctx.scale(scaleFactor, scaleFactor);
+    ctx.rotate(rotX);
+    ctx.rotate(rotY);
+    ctx.rotate(rotation.z);
+  }
+
+  function captureCloneSample(x, y, width, height) {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = sprite.width;
+    tempCanvas.height = sprite.height;
+    const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true, alpha: true });
+
+    tempCtx.fillStyle = 'transparent';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+    if (currentBackgroundImage && currentBackgroundImage.complete && currentBackgroundImage.naturalWidth !== 0) {
+      const canvasAspect = canvas.width / canvas.height;
+      const imgAspect = currentBackgroundImage.width / currentBackgroundImage.height;
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      if (imgAspect > canvasAspect) {
+        drawHeight = canvas.height;
+        drawWidth = drawHeight * imgAspect;
+        offsetX = (canvas.width - drawWidth) / 2;
+        offsetY = 0;
+      } else {
+        drawWidth = canvas.width;
+        drawHeight = drawWidth / imgAspect;
+        offsetX = 0;
+        offsetY = (canvas.height - drawHeight) / 2;
+      }
+      tempCtx.drawImage(currentBackgroundImage, offsetX - x, offsetY - y, drawWidth, drawHeight);
+    }
+
+    tempCtx.drawImage(trailCanvas, -x, -y);
+    applyEffects(tempCtx, sprite, 0, 0, sprite.width, sprite.height);
+
+    tempCtx.globalCompositeOperation = 'destination-in';
+    tempCtx.drawImage(sprite, 0, 0, sprite.width, sprite.height);
+    tempCtx.globalCompositeOperation = 'source-over';
+
+    clonedSprite = new Image();
+    clonedSprite.src = tempCanvas.toDataURL('image/png');
+    clonedSprite.width = sprite.width;
+    clonedSprite.height = sprite.height;
+  }
+
   function applyEffects(ctx, img, x, y, width, height) {
     ctx.save();
     ctx.translate(x, y);
+    if (effects.includes('randomixer')) {
+      applyRandomixer();
+    }
+    if (effects.includes('cuber')) {
+      applyCuber(ctx, img, 0, 0, width, height);
+      ctx.restore();
+      return;
+    }
     effects.forEach(effect => {
       ctx.save();
       if (effect === 'distort') {
@@ -675,6 +833,8 @@
       } else if (effect === 'posterize') {
         ctx.filter = 'contrast(200%) saturate(150%)';
         ctx.drawImage(img, 0, 0, width, height);
+      } else if (effect === 'clone') {
+        ctx.drawImage(clonedSprite || img, 0, 0, width, height);
       } else if (effect === 'none') {
         ctx.drawImage(img, 0, 0, width, height);
       }
@@ -687,7 +847,9 @@
   function isMouseOverSprite(x, y) {
     const scaledWidth = sprite.width * scale;
     const scaledHeight = sprite.height * scale;
-    return x >= spriteX && x <= spriteX + scaledWidth && y >= spriteY && y <= spriteY + scaledHeight;
+    const posX = effects.includes('cuber') ? cubeX : spriteX;
+    const posY = effects.includes('cuber') ? cubeY : spriteY;
+    return x >= posX && x <= posX + scaledWidth && y >= posY && y <= posY + scaledHeight;
   }
 
   function animate(currentTime) {
@@ -699,15 +861,12 @@
       const scaledWidth = sprite.width * scale;
       const scaledHeight = sprite.height * scale;
 
-      // Random direction change
+      // Update sprite position
       if (currentTime > changeDirectionTime) {
         resetVelocity();
       }
-
       let nextX = spriteX + dx * deltaTime * 60;
       let nextY = spriteY + dy * deltaTime * 60;
-
-      // Boundary checks
       if (nextX + scaledWidth > canvas.width) {
         nextX = canvas.width - scaledWidth;
         resetVelocity();
@@ -715,7 +874,6 @@
         nextX = 0;
         resetVelocity();
       }
-
       if (nextY + scaledHeight > canvas.height) {
         nextY = canvas.height - scaledHeight;
         resetVelocity();
@@ -723,18 +881,48 @@
         nextY = 0;
         resetVelocity();
       }
-
       spriteX = nextX;
       spriteY = nextY;
+
+      // Update cube position
+      if (effects.includes('cuber')) {
+        if (currentTime > cubeChangeDirectionTime) {
+          resetCubeVelocity();
+        }
+        let cubeNextX = cubeX + cubeDx * deltaTime * 60;
+        let cubeNextY = cubeY + cubeDy * deltaTime * 60;
+        if (cubeNextX + scaledWidth > canvas.width) {
+          cubeNextX = canvas.width - scaledWidth;
+          resetCubeVelocity();
+        } else if (cubeNextX < 0) {
+          cubeNextX = 0;
+          resetCubeVelocity();
+        }
+        if (cubeNextY + scaledHeight > canvas.height) {
+          cubeNextY = canvas.height - scaledHeight;
+          resetCubeVelocity();
+        } else if (cubeNextY < 0) {
+          cubeNextY = 0;
+          resetCubeVelocity();
+        }
+        cubeX = cubeNextX;
+        cubeY = cubeNextY;
+      }
+    }
+
+    if (effects.includes('cuber')) {
+      cubeRotation.x += cubeVelocity.x * deltaTime;
+      cubeRotation.y += cubeVelocity.y * deltaTime;
+      cubeRotation.z += cubeVelocity.z * deltaTime;
     }
 
     if (trailAlways || isDraggingSprite) {
       trailCtx.globalAlpha = effects.includes('blur') ? 0.5 : 1.0;
-      applyEffects(trailCtx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+      applyEffects(trailCtx, clonedSprite || sprite, effects.includes('cuber') ? cubeX : spriteX, effects.includes('cuber') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
     }
 
     ctx.drawImage(trailCanvas, 0, 0);
-    applyEffects(ctx, sprite, spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+    applyEffects(ctx, clonedSprite || sprite, effects.includes('cuber') ? cubeX : spriteX, effects.includes('cuber') ? cubeY : spriteY, sprite.width * scale, sprite.height * scale);
 
     if (effects.includes('hue')) {
       hueValue = (hueValue + 2) % 360;
@@ -790,6 +978,10 @@
       const mouseY = e.clientY - rect.top;
       spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
       spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
+      if (effects.includes('cuber')) {
+        cubeX = spriteX;
+        cubeY = spriteY;
+      }
     }
   });
 
@@ -811,6 +1003,10 @@
       const touchY = touch.clientY - rect.top;
       spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
       spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
+      if (effects.includes('cuber')) {
+        cubeX = spriteX;
+        cubeY = spriteY;
+      }
     }
   });
 
@@ -822,6 +1018,12 @@
     if (isDraggingSprite) {
       isDraggingSprite = false;
       resetVelocity();
+      if (effects.includes('cuber')) {
+        resetCubeVelocity();
+      }
+      if (effects.includes('clone')) {
+        captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+      }
     }
   });
 
@@ -833,6 +1035,12 @@
     if (isDraggingSprite) {
       isDraggingSprite = false;
       resetVelocity();
+      if (effects.includes('cuber')) {
+        resetCubeVelocity();
+      }
+      if (effects.includes('clone')) {
+        captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+      }
     }
   });
 
@@ -844,6 +1052,12 @@
     if (isDraggingSprite) {
       isDraggingSprite = false;
       resetVelocity();
+      if (effects.includes('cuber')) {
+        resetCubeVelocity();
+      }
+      if (effects.includes('clone')) {
+        captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
+      }
     }
   });
 
@@ -857,10 +1071,21 @@
         isDraggingSprite = true;
         dx = 0;
         dy = 0;
+        if (effects.includes('cuber')) {
+          cubeDx = 0;
+          cubeDy = 0;
+        }
       } else {
         spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, mouseX - (sprite.width * scale) / 2));
         spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, mouseY - (sprite.height * scale) / 2));
+        if (effects.includes('cuber')) {
+          cubeX = spriteX;
+          cubeY = spriteY;
+        }
         isDraggingSprite = true;
+      }
+      if (effects.includes('clone')) {
+        captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
       }
     }
   });
@@ -876,10 +1101,21 @@
         isDraggingSprite = true;
         dx = 0;
         dy = 0;
+        if (effects.includes('cuber')) {
+          cubeDx = 0;
+          cubeDy = 0;
+        }
       } else {
         spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, touchX - (sprite.width * scale) / 2));
         spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, touchY - (sprite.height * scale) / 2));
+        if (effects.includes('cuber')) {
+          cubeX = spriteX;
+          cubeY = spriteY;
+        }
         isDraggingSprite = true;
+      }
+      if (effects.includes('clone')) {
+        captureCloneSample(spriteX, spriteY, sprite.width * scale, sprite.height * scale);
       }
     }
   });
@@ -904,6 +1140,8 @@
     trailCanvas.height = canvas.height;
     spriteX = Math.max(0, Math.min(canvas.width - sprite.width * scale, (spriteX + (sprite.width * scale) / 2) * (canvas.width / trailCanvas.width) - (sprite.width * scale) / 2));
     spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
+    cubeX = spriteX;
+    cubeY = spriteY;
     panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
     panelY = window.innerHeight - controlPanel.offsetHeight - 15;
     controlPanel.style.left = `${panelX}px`;
