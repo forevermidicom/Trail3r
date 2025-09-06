@@ -306,8 +306,7 @@
     canvas.height = window.innerHeight;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const controlPanel = document.getElementById('control-panel');
-    let panelX = window.innerWidth / 2 - 218.4 / 2;
-    let panelY = window.innerHeight - 15 - controlPanel.offsetHeight;
+    let panelX, panelY;
     let isDraggingPanel = false;
     let panelOffsetX = 0;
     let panelOffsetY = 0;
@@ -346,6 +345,16 @@
     let touchStartTime = 0;
     let touchStartY = 0;
     let touchMoved = false;
+
+    function setInitialPanelPosition() {
+      const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
+      panelX = (window.innerWidth - controlPanel.offsetWidth / scaleFactor) / 2;
+      panelY = window.innerHeight - controlPanel.offsetHeight / scaleFactor - 15;
+      controlPanel.style.left = `${panelX}px`;
+      controlPanel.style.top = `${panelY}px`;
+      controlPanel.style.right = 'auto';
+      controlPanel.style.bottom = 'auto';
+    }
 
     function initializeSprite() {
       if (sprite.width && sprite.height) {
@@ -495,12 +504,7 @@
       trailAlways = false;
       document.getElementById('trail-always').checked = false;
       document.getElementById('snapshot-message').style.display = 'none';
-      panelX = window.innerWidth / 2 - controlPanel.offsetWidth / 2;
-      panelY = window.innerHeight - controlPanel.offsetHeight - 15;
-      controlPanel.style.left = `${panelX}px`;
-      controlPanel.style.top = `${panelY}px`;
-      controlPanel.style.right = 'auto';
-      controlPanel.style.bottom = 'auto';
+      setInitialPanelPosition();
       const fxList = document.getElementById('fx-list');
       fxList.style.display = 'none';
       document.getElementById('fx-button').textContent = 'FX';
@@ -1022,8 +1026,9 @@
       if (isDraggingPanel) {
         e.preventDefault();
         const touch = e.touches[0];
-        panelX = touch.clientX - panelOffsetX;
-        panelY = Math.min(window.innerHeight - controlPanel.offsetHeight - 15, Math.max(0, touch.clientY - panelOffsetY));
+        const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
+        panelX = (touch.clientX - panelOffsetX) / scaleFactor;
+        panelY = Math.min(window.innerHeight - controlPanel.offsetHeight / scaleFactor - 15, Math.max(0, touch.clientY - panelOffsetY) / scaleFactor);
         controlPanel.style.left = `${panelX}px`;
         controlPanel.style.top = `${panelY}px`;
         controlPanel.style.right = 'auto';
@@ -1210,21 +1215,13 @@
       spriteY = Math.max(0, Math.min(canvas.height - sprite.height * scale, (spriteY + (sprite.height * scale) / 2) * (canvas.height / trailCanvas.height) - (sprite.height * scale) / 2));
       cubeX = spriteX;
       cubeY = spriteY;
-      const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
-      panelX = window.innerWidth / 2 - (controlPanel.offsetWidth / scaleFactor) / 2;
-      panelY = window.innerHeight - (controlPanel.offsetHeight / scaleFactor) - 15;
-      controlPanel.style.left = `${panelX}px`;
-      controlPanel.style.top = `${panelY}px`;
-      controlPanel.style.right = 'auto';
-      controlPanel.style.bottom = 'auto';
+      if (!isDraggingPanel) {
+        setInitialPanelPosition();
+      }
     });
 
     window.onload = () => {
-      const scaleFactor = window.innerWidth >= 1024 ? 0.9 : 1;
-      panelX = window.innerWidth / 2 - (controlPanel.offsetWidth / scaleFactor) / 2;
-      panelY = window.innerHeight - (controlPanel.offsetHeight / scaleFactor) - 15;
-      controlPanel.style.left = `${panelX}px`;
-      controlPanel.style.top = `${panelY}px`;
+      setInitialPanelPosition();
       loadSpriteImage(defaultSprite);
       animate(performance.now());
     };
